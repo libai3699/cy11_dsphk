@@ -17,7 +17,7 @@ function demoAction(text: string) {
         <div class="page-head">
           <div>
             <div class="page-title">跟进记录</div>
-            <div class="page-desc">前线谈商家时最有价值的信息，是对方卡在哪里、下一步怎么推进。</div>
+            <div class="page-desc">前线谈商家时最有价值的信息，是对方卡在哪里、当前怎么推进。</div>
           </div>
           <el-button type="primary" @click="demoAction('新增跟进记录')">新增跟进</el-button>
         </div>
@@ -32,12 +32,12 @@ function demoAction(text: string) {
         </el-table-column>
         <el-table-column prop="latestTalk" label="最近沟通" min-width="220" />
         <el-table-column prop="objection" label="关键异议" min-width="200" />
-        <el-table-column prop="nextStep" label="下一步" min-width="200" />
+        <el-table-column prop="nextStep" label="后续动作" min-width="200" />
         <el-table-column prop="owner" label="负责人" width="110" />
         <el-table-column label="操作" width="260" fixed="right">
           <template #default="{ row }">
             <el-button size="small" @click="demoAction(`生成 ${row.merchant} 跟进话术`)">生成话术</el-button>
-            <el-button size="small" type="primary" @click="demoAction(`推进 ${row.merchant} 下一步`)">推进</el-button>
+            <el-button size="small" type="primary" @click="demoAction(`推进 ${row.merchant} 当前动作`)">推进</el-button>
           </template>
         </el-table-column>
       </el-table>

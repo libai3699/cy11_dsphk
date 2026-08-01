@@ -30,19 +30,20 @@ type Role struct {
 }
 
 type Menu struct {
-	ID        uint      `gorm:"primaryKey" json:"id"`
-	ParentID  *uint     `gorm:"index" json:"parentId"`
-	Name      string    `gorm:"size:128;not null;uniqueIndex" json:"name"`
-	Path      string    `gorm:"size:255;not null" json:"path"`
-	Component string    `gorm:"size:255" json:"component"`
-	Redirect  string    `gorm:"size:255" json:"redirect"`
-	Title     string    `gorm:"size:128;not null" json:"title"`
-	Icon      string    `gorm:"size:128" json:"icon"`
-	SortOrder int       `gorm:"not null;default:0" json:"sortOrder"`
-	AffixTab  bool      `gorm:"not null;default:false" json:"affixTab"`
-	Visible   bool      `gorm:"not null;default:true" json:"visible"`
-	CreatedAt time.Time `json:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt"`
+	ID         uint      `gorm:"primaryKey" json:"id"`
+	ParentID   *uint     `gorm:"index" json:"parentId"`
+	Name       string    `gorm:"size:128;not null;uniqueIndex" json:"name"`
+	Path       string    `gorm:"size:255;not null" json:"path"`
+	Component  string    `gorm:"size:255" json:"component"`
+	Redirect   string    `gorm:"size:255" json:"redirect"`
+	Title      string    `gorm:"size:128;not null" json:"title"`
+	Icon       string    `gorm:"size:128" json:"icon"`
+	SortOrder  int       `gorm:"not null;default:0" json:"sortOrder"`
+	AffixTab   bool      `gorm:"not null;default:false" json:"affixTab"`
+	HideInMenu bool      `gorm:"not null;default:false" json:"hideInMenu"`
+	Visible    bool      `gorm:"not null;default:true" json:"visible"`
+	CreatedAt  time.Time `json:"createdAt"`
+	UpdatedAt  time.Time `json:"updatedAt"`
 }
 
 type AdminUserRole struct {

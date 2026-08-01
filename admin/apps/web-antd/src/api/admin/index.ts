@@ -1,3 +1,5 @@
+export * from './account-auths';
+export * from './account-diagnoses';
 export * from './users';
 export * from './plans';
 export * from './orders';
@@ -5,4 +7,5 @@ export * from './notices';
 export * from './configs';
 export * from './lines';
 export * from './logs';
+export * from './merchants';
 export * from './stats';

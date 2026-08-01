@@ -1,30 +1,116 @@
 import { requestClient } from '#/api/request';
 
-export interface VpnLine {
+export interface BenchmarkAccount {
   id: number;
-  name: string;
-  region: string;
-  protocol: string;
-  address: string;
-  raw_uri: string;
-  sort_order: number;
-  is_default: 0 | 1;
-  is_active: 0 | 1;
-  description: string;
+  merchantId: number;
+  merchantName: string;
+  accountName: string;
+  platform: string;
+  city: string;
+  industry: string;
+  accountUrl: string;
+  followerCount: number;
+  bestPlayCount: number;
+  latestHitTitle: string;
+  takeaway: string;
+  risk: string;
+  status: string;
+  remark: string;
+  createdBy: number;
+  updatedBy: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
-export const getLineList = () => requestClient.get<VpnLine[]>('/lines');
+export interface BenchmarkAccountPayload {
+  merchantId: number;
+  accountName: string;
+  platform?: string;
+  city?: string;
+  industry?: string;
+  accountUrl?: string;
+  followerCount?: number;
+  bestPlayCount?: number;
+  latestHitTitle?: string;
+  takeaway?: string;
+  risk?: string;
+  status?: string;
+  remark?: string;
+}
 
-export const createLine = (data: Partial<VpnLine>) =>
-  requestClient.post<VpnLine>('/lines', data);
+export interface BenchmarkAccountListResult {
+  list: BenchmarkAccount[];
+  total: number;
+  page: number;
+  size: number;
+}
 
-export const updateLine = (id: number, data: Partial<VpnLine>) =>
-  requestClient.put(`/lines/${id}`, data);
+export interface BenchmarkAnalysisResult {
+  summary?: string;
+  suggestions?: string[];
+  patterns?: string[];
+  risks?: string[];
+  [key: string]: unknown;
+}
 
-export const deleteLine = (id: number) => requestClient.delete(`/lines/${id}`);
+export interface BenchmarkAnalysisTask {
+  id: number;
+  merchantId: number;
+  merchantName: string;
+  benchmarkAccountId: number;
+  benchmarkName: string;
+  status: string;
+  inputSnapshot: string;
+  resultJson: string;
+  errorMessage: string;
+  input?: unknown;
+  result?: BenchmarkAnalysisResult;
+  createdBy: number;
+  updatedBy: number;
+  createdAt: string;
+  updatedAt: string;
+}
 
-export const assignUserLine = (data: {
-  line_id: number;
-  notice?: string;
-  user_id: number;
-}) => requestClient.post('/users/assign-line', data);
+export interface BenchmarkAnalysisListResult {
+  list: BenchmarkAnalysisTask[];
+  total: number;
+  page: number;
+  size: number;
+}
+
+export function getBenchmarkAccountList(params: {
+  keyword?: string;
+  merchantId?: number;
+  page?: number;
+  size?: number;
+  status?: string;
+}) {
+  return requestClient.get<BenchmarkAccountListResult>('/benchmarks', { params });
+}
+
+export function createBenchmarkAccount(data: BenchmarkAccountPayload) {
+  return requestClient.post<BenchmarkAccount>('/benchmarks', data);
+}
+
+export function updateBenchmarkAccount(id: number, data: BenchmarkAccountPayload) {
+  return requestClient.put<BenchmarkAccount>(`/benchmarks/${id}`, data);
+}
+
+export function deleteBenchmarkAccount(id: number) {
+  return requestClient.delete<{ id: number }>(`/benchmarks/${id}`);
+}
+
+export function analyzeBenchmarkAccount(id: number) {
+  return requestClient.post<BenchmarkAnalysisTask>(`/benchmarks/${id}/analyze`);
+}
+
+export function getBenchmarkAnalysisList(params: {
+  benchmarkAccountId?: number;
+  merchantId?: number;
+  page?: number;
+  size?: number;
+}) {
+  return requestClient.get<BenchmarkAnalysisListResult>('/benchmark-analyses', {
+    params,
+  });
+}

@@ -15,10 +15,11 @@ type MenuRoute struct {
 }
 
 type MenuMeta struct {
-	Title    string `json:"title"`
-	Icon     string `json:"icon,omitempty"`
-	Order    int    `json:"order,omitempty"`
-	AffixTab bool   `json:"affixTab,omitempty"`
+	Title      string `json:"title"`
+	Icon       string `json:"icon,omitempty"`
+	Order      int    `json:"order,omitempty"`
+	AffixTab   bool   `json:"affixTab,omitempty"`
+	HideInMenu bool   `json:"hideInMenu,omitempty"`
 }
 
 func GetUserRoles(userID uint64) ([]model.Role, error) {
@@ -99,10 +100,11 @@ func buildMenuRoutesFromParent(parentID uint, childrenByParent map[uint][]model.
 			Component: menu.Component,
 			Redirect:  menu.Redirect,
 			Meta: MenuMeta{
-				Title:    menu.Title,
-				Icon:     menu.Icon,
-				Order:    menu.SortOrder,
-				AffixTab: menu.AffixTab,
+				Title:      menu.Title,
+				Icon:       menu.Icon,
+				Order:      menu.SortOrder,
+				AffixTab:   menu.AffixTab,
+				HideInMenu: menu.HideInMenu,
 			},
 			Children: buildMenuRoutesFromParent(menu.ID, childrenByParent),
 		}

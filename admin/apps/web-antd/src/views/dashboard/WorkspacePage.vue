@@ -152,7 +152,7 @@ function demoAction(text: string) {
             <div v-for="item in reviewRows" :key="item.video" class="review-item">
               <div class="review-title">{{ item.video }}</div>
               <div class="review-meta">{{ item.merchant }} · {{ item.views }} · {{ item.deals }}</div>
-              <div class="review-next">下一步：{{ item.nextAction }}</div>
+              <div class="review-next">后续动作：{{ item.nextAction }}</div>
               <el-button class="todo-button" size="small" @click="demoAction(`生成复盘建议：${item.video}`)">
                 生成复盘建议
               </el-button>

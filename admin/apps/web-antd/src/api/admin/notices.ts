@@ -1,23 +1,78 @@
 import { requestClient } from '#/api/request';
 
-export interface Notice {
+export interface ContentTopic {
   id: number;
-  target_user_id?: number | null;
-  content: string;
-  type: number;
-  is_active: number;
-  sort_order: number;
-  created_at: string;
+  merchantId: number;
+  merchantName: string;
+  benchmarkId: number;
+  benchmarkName: string;
+  title: string;
+  hook: string;
+  angle: string;
+  target: string;
+  riskLevel: string;
+  recommendReason: string;
+  tagsJson: string;
+  tags: string[];
+  publishWindow: string;
+  status: string;
+  sourceTaskId: number;
+  createdBy: number;
+  updatedBy: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
-export const getNoticeList = () =>
-  requestClient.get<Notice[]>('/notices');
+export interface ContentTopicListResult {
+  list: ContentTopic[];
+  total: number;
+  page: number;
+  size: number;
+}
 
-export const createNotice = (data: { content: string; target_user_id?: number | null; type?: number; is_active?: number; sort_order?: number }) =>
-  requestClient.post<Notice>('/notices', data);
+export interface GenerateTopicsPayload {
+  merchantId: number;
+  benchmarkId?: number;
+  benchmarkName?: string;
+  cityHotspots?: string[];
+  industryHotspots?: string[];
+  nationalHotspots?: string[];
+  extraRequirement?: string;
+}
 
-export const updateNotice = (id: number, data: Partial<Notice>) =>
-  requestClient.put(`/notices/${id}`, data);
+export interface HotspotTopicTask {
+  id: number;
+  merchantId: number;
+  merchantName: string;
+  benchmarkId: number;
+  benchmarkName: string;
+  status: string;
+  inputSnapshot: string;
+  resultJson: string;
+  errorMessage: string;
+  input?: unknown;
+  result?: unknown;
+  topics?: ContentTopic[];
+  createdBy: number;
+  updatedBy: number;
+  createdAt: string;
+  updatedAt: string;
+}
 
-export const deleteNotice = (id: number) =>
-  requestClient.delete(`/notices/${id}`);
+export function getContentTopicList(params: {
+  keyword?: string;
+  merchantId?: number;
+  page?: number;
+  size?: number;
+  status?: string;
+}) {
+  return requestClient.get<ContentTopicListResult>('/topics', { params });
+}
+
+export function generateContentTopics(data: GenerateTopicsPayload) {
+  return requestClient.post<HotspotTopicTask>('/topics/generate', data);
+}
+
+export function updateContentTopicStatus(id: number, status: string) {
+  return requestClient.put<ContentTopic>(`/topics/${id}/status`, { status });
+}

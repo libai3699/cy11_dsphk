@@ -1,28 +1,65 @@
 import { requestClient } from '#/api/request';
 
-export interface Plan {
-  discount_half_year?: number | null;
-  discount_quarter?: number | null;
-  discount_year?: number | null;
+export interface MerchantPackage {
   id: number;
+  merchantId: number;
+  merchantName: string;
   name: string;
-  price: number;
-  traffic_gb: number | null;
-  duration_days: number;
-  sort_order: number;
-  is_active: number;
-  max_devices: number;
-  created_at: string;
+  originalPrice: number;
+  sellingPrice: number;
+  costPrice: number;
+  commissionRate: number;
+  trafficLabel: string;
+  profitGuard: string;
+  grossProfit: number;
+  marginRate: number;
+  estimatedCommission: number;
+  netAfterCommission: number;
+  status: number;
+  remark: string;
+  createdBy: number;
+  updatedBy: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
-export const getPlanList = () =>
-  requestClient.get<Plan[]>('/plans');
+export interface MerchantPackagePayload {
+  merchantId: number;
+  name: string;
+  originalPrice?: number;
+  sellingPrice: number;
+  costPrice?: number;
+  commissionRate?: number;
+  trafficLabel?: string;
+  profitGuard?: string;
+  status?: number;
+  remark?: string;
+}
 
-export const createPlan = (data: Omit<Plan, 'id' | 'created_at'>) =>
-  requestClient.post<Plan>('/plans', data);
+export interface MerchantPackageListResult {
+  list: MerchantPackage[];
+  total: number;
+  page: number;
+  size: number;
+}
 
-export const updatePlan = (id: number, data: Partial<Plan>) =>
-  requestClient.put(`/plans/${id}`, data);
+export function getMerchantPackageList(params: {
+  keyword?: string;
+  merchantId?: number;
+  page?: number;
+  size?: number;
+}) {
+  return requestClient.get<MerchantPackageListResult>('/packages', { params });
+}
 
-export const deletePlan = (id: number) =>
-  requestClient.delete(`/plans/${id}`);
+export function createMerchantPackage(data: MerchantPackagePayload) {
+  return requestClient.post<MerchantPackage>('/packages', data);
+}
+
+export function updateMerchantPackage(id: number, data: MerchantPackagePayload) {
+  return requestClient.put<MerchantPackage>(`/packages/${id}`, data);
+}
+
+export function deleteMerchantPackage(id: number) {
+  return requestClient.delete<{ id: number }>(`/packages/${id}`);
+}

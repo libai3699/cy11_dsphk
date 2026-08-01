@@ -1,12 +1,42 @@
 <script setup lang="ts">
+import { computed, ref, watch } from 'vue';
 import { ElMessage } from 'element-plus';
 
 import { publishSchedule } from '#/mock/content-ops';
+import { useRoute } from 'vue-router';
 
 defineOptions({ name: 'ContentPaymentsPage' });
 
+const route = useRoute();
+const keyword = ref('');
+
+const merchantName = computed(() => String(route.query.merchantName || ''));
+const merchantId = computed(() => String(route.query.merchantId || ''));
+
+const filteredPublishSchedule = computed(() => {
+  const searchText = keyword.value.trim();
+  if (!searchText) return publishSchedule;
+  return publishSchedule.filter((item) =>
+    [item.merchant, item.title, item.publishTime, item.owner, item.status].some((value) =>
+      value.includes(searchText),
+    ),
+  );
+});
+
+watch(
+  () => route.query,
+  () => {
+    keyword.value = merchantName.value;
+  },
+  { immediate: true },
+);
+
 function demoAction(text: string) {
   ElMessage.success(`${text}：演示动作已触发`);
+}
+
+function resetSearch() {
+  keyword.value = '';
 }
 </script>
 
@@ -21,12 +51,41 @@ function demoAction(text: string) {
           </div>
           <div class="page-actions">
             <el-button @click="demoAction('检查发布素材')">检查素材</el-button>
-            <el-button type="primary" @click="demoAction('新增发布排期')">新增排期</el-button>
+            <el-button
+              type="primary"
+              @click="demoAction(`新增 ${merchantName || '商家'} 发布排期`)"
+            >
+              新增排期
+            </el-button>
           </div>
         </div>
       </template>
 
-      <el-table :data="publishSchedule" border stripe>
+      <el-alert
+        v-if="merchantName"
+        class="mb-4"
+        type="info"
+        :closable="false"
+        show-icon
+      >
+        当前处理商家：{{ merchantName }}。已自动带入筛选条件，商家ID：{{ merchantId || '-' }}。
+      </el-alert>
+
+      <el-form :inline="true" class="search-form">
+        <el-form-item label="关键词">
+          <el-input
+            v-model="keyword"
+            clearable
+            placeholder="商家 / 视频 / 发布时间 / 负责人 / 状态"
+            style="width: 320px"
+          />
+        </el-form-item>
+        <el-form-item>
+          <el-button @click="resetSearch">显示全部</el-button>
+        </el-form-item>
+      </el-form>
+
+      <el-table :data="filteredPublishSchedule" border stripe>
         <el-table-column prop="merchant" label="商家" min-width="160" />
         <el-table-column prop="title" label="视频标题" min-width="220" />
         <el-table-column prop="publishTime" label="发布时间" width="170" />
@@ -43,6 +102,15 @@ function demoAction(text: string) {
           </template>
         </el-table-column>
       </el-table>
+
+      <el-empty v-if="filteredPublishSchedule.length === 0" description="当前商家还没有发布排期">
+        <el-button
+          type="primary"
+          @click="demoAction(`新增 ${merchantName || '商家'} 发布排期`)"
+        >
+          新增排期
+        </el-button>
+      </el-empty>
     </el-card>
   </div>
 </template>
@@ -70,5 +138,9 @@ function demoAction(text: string) {
   display: flex;
   flex-shrink: 0;
   gap: 10px;
+}
+
+.search-form {
+  margin-bottom: 12px;
 }
 </style>

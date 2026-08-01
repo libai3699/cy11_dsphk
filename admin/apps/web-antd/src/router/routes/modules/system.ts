@@ -13,10 +13,26 @@ const routes: RouteRecordRaw[] = [
         meta: { icon: 'carbon:user', title: '商家列表' },
       },
       {
+        name: 'MerchantProcessPage',
+        path: '/users/detail/:id',
+        component: () => import('#/views/users/MerchantProcessPage.vue'),
+        meta: {
+          hideInMenu: true,
+          icon: 'carbon:flow',
+          title: '商家推进流程',
+        },
+      },
+      {
         name: 'UserDevicesPage',
         path: '/users/devices',
         component: () => import('#/views/users/UserDevicesPage.vue'),
         meta: { icon: 'carbon:mobile', title: '账号授权' },
+      },
+      {
+        name: 'AccountDiagnosisPage',
+        path: '/users/account-diagnosis',
+        component: () => import('#/views/users/AccountDiagnosisPage.vue'),
+        meta: { icon: 'carbon:analytics', title: '账号诊断' },
       },
       {
         name: 'DurationLogPage',

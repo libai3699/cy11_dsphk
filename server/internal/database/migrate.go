@@ -16,6 +16,14 @@ func MigrateAndSeed(cfg config.Config) error {
 		&model.AdminUserRole{},
 		&model.RoleMenu{},
 		&model.AdminLoginLog{},
+		&model.Merchant{},
+		&model.MerchantPackage{},
+		&model.MerchantAccountAuth{},
+		&model.AccountDiagnosisTask{},
+		&model.BenchmarkAccount{},
+		&model.BenchmarkAnalysisTask{},
+		&model.ContentTopic{},
+		&model.HotspotTopicTask{},
 	); err != nil {
 		return err
 	}
@@ -55,9 +63,11 @@ func seedMenus() error {
 	items := []seedMenu{
 		{Menu: model.Menu{Name: "WorkspacePage", Path: "/workspace", Component: "/dashboard/WorkspacePage", Title: "工作台", Icon: "carbon:dashboard", SortOrder: -1, AffixTab: true, Visible: true}},
 		{Menu: model.Menu{Name: "UserMgmt", Path: "/users", Title: "商家管理", Icon: "carbon:user-multiple", SortOrder: 1, Visible: true}},
-		{ParentName: "UserMgmt", Menu: model.Menu{Name: "UserListPage", Path: "/users/list", Component: "/users/UserListPage", Title: "商家列表", Icon: "carbon:user", SortOrder: 11, Visible: true}},
-		{ParentName: "UserMgmt", Menu: model.Menu{Name: "UserDevicesPage", Path: "/users/devices", Component: "/users/UserDevicesPage", Title: "账号授权", Icon: "carbon:mobile", SortOrder: 12, Visible: true}},
-		{ParentName: "UserMgmt", Menu: model.Menu{Name: "DurationLogPage", Path: "/users/duration-logs", Component: "/users/DurationLogPage", Title: "跟进记录", Icon: "carbon:time", SortOrder: 13, Visible: true}},
+		{ParentName: "UserMgmt", Menu: model.Menu{Name: "UserListPage", Path: "/users/list", Component: "/users/UserListPage", Title: "商家建档", Icon: "carbon:user", SortOrder: 11, Visible: true}},
+		{ParentName: "UserMgmt", Menu: model.Menu{Name: "MerchantProcessPage", Path: "/users/detail/:id", Component: "/users/MerchantProcessPage", Title: "商家推进流程", Icon: "carbon:flow", SortOrder: 12, HideInMenu: true, Visible: true}},
+		{ParentName: "UserMgmt", Menu: model.Menu{Name: "UserDevicesPage", Path: "/users/devices", Component: "/users/UserDevicesPage", Title: "账号授权", Icon: "carbon:mobile", SortOrder: 13, Visible: true}},
+		{ParentName: "UserMgmt", Menu: model.Menu{Name: "AccountDiagnosisPage", Path: "/users/account-diagnosis", Component: "/users/AccountDiagnosisPage", Title: "账号诊断", Icon: "carbon:analytics", SortOrder: 14, Visible: true}},
+		{ParentName: "UserMgmt", Menu: model.Menu{Name: "DurationLogPage", Path: "/users/duration-logs", Component: "/users/DurationLogPage", Title: "跟进记录", Icon: "carbon:time", SortOrder: 15, Visible: true}},
 		{Menu: model.Menu{Name: "PlanMgmt", Path: "/plans", Title: "成交与分成", Icon: "carbon:purchase", SortOrder: 2, Visible: true}},
 		{ParentName: "PlanMgmt", Menu: model.Menu{Name: "PlanListPage", Path: "/plans/list", Component: "/plans/PlanListPage", Title: "团购套餐", Icon: "carbon:list", SortOrder: 21, Visible: true}},
 		{ParentName: "PlanMgmt", Menu: model.Menu{Name: "PlanOrdersPage", Path: "/plans/orders", Component: "/plans/PlanOrdersPage", Title: "分成订单", Icon: "carbon:document", SortOrder: 22, Visible: true}},
@@ -113,7 +123,7 @@ func seedRoleMenus() error {
 		"super_admin": allMenuNames,
 		"operator": {
 			"WorkspacePage",
-			"UserMgmt", "UserListPage", "UserDevicesPage", "DurationLogPage",
+			"UserMgmt", "UserListPage", "MerchantProcessPage", "UserDevicesPage", "AccountDiagnosisPage", "DurationLogPage",
 			"LineMgmt", "LineListPage",
 			"ContentMgmt", "ContentNoticesPage", "ContentQuotesPage", "ContentDiscoveriesPage", "ContentPaymentsPage",
 			"LogMgmt", "LogUserPage", "LogAdminPage",

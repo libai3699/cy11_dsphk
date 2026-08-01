@@ -20,7 +20,7 @@ function demoAction(text: string) {
         <div class="page-head">
           <div>
             <div class="page-title">数据复盘</div>
-            <div class="page-desc">每条视频发出去后，最终都要回到“有没有成交、下一条怎么改”。</div>
+            <div class="page-desc">每条视频发出去后，最终都要回到“有没有成交、后面怎么改”。</div>
           </div>
           <div class="page-actions">
             <el-button @click="demoAction('同步视频数据')">同步数据</el-button>
@@ -36,7 +36,7 @@ function demoAction(text: string) {
         <el-table-column prop="views" label="播放" width="100" />
         <el-table-column prop="deals" label="成交单数" width="110" />
         <el-table-column prop="ordersAmount" label="成交额" width="110" />
-        <el-table-column prop="nextAction" label="下一步动作" min-width="220" />
+        <el-table-column prop="nextAction" label="后续动作" min-width="220" />
         <el-table-column label="操作" width="300" fixed="right">
           <template #default="{ row }">
             <el-button size="small" @click="demoAction(`复盘 ${row.video}`)">单条复盘</el-button>
