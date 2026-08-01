@@ -1,0 +1,50 @@
+# Local agent/runtime files
+.agents/
+.codex/
+
+# Environment files
+.env
+**/.env
+**/.env.local
+**/.env.*.local
+
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build outputs
+dist/
+build/
+coverage/
+.turbo/
+.vite/
+.nitro/
+*.tsbuildinfo
+
+# Logs and temp
+*.log
+/logs/
+tmp/
+temp/
+
+# Go local binaries
+server/app
+server/app.exe
+server/tmp/
+
+# Local database data
+server/.mysql-data*/
+server/.mysql-root-data*/
+*.sqlite
+*.sqlite3
+*.db
+
+# Upload/cache/runtime data
+/uploads/
+/cache/
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
