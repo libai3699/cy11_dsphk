@@ -402,7 +402,7 @@ onMounted(async () => {
               <el-input v-model="form.name" placeholder="例如：双人鲜牛火锅套餐" />
             </el-form-item>
           </el-col>
-          <el-col :span="8">
+          <el-col :span="12">
             <el-form-item label="门市价">
               <el-input-number
                 v-model="form.originalPrice"
@@ -413,7 +413,7 @@ onMounted(async () => {
               />
             </el-form-item>
           </el-col>
-          <el-col :span="8">
+          <el-col :span="12">
             <el-form-item label="团购售价" prop="sellingPrice">
               <el-input-number
                 v-model="form.sellingPrice"
@@ -424,7 +424,7 @@ onMounted(async () => {
               />
             </el-form-item>
           </el-col>
-          <el-col :span="8">
+          <el-col :span="12">
             <el-form-item label="商家成本">
               <el-input-number
                 v-model="form.costPrice"
@@ -435,7 +435,7 @@ onMounted(async () => {
               />
             </el-form-item>
           </el-col>
-          <el-col :span="8">
+          <el-col :span="12">
             <el-form-item label="提点比例">
               <el-input-number
                 v-model="form.commissionRate"
@@ -447,7 +447,7 @@ onMounted(async () => {
               />
             </el-form-item>
           </el-col>
-          <el-col :span="8">
+          <el-col :span="12">
             <el-form-item label="状态">
               <el-select v-model="form.status" style="width: 100%">
                 <el-option label="启用" :value="1" />
@@ -455,7 +455,7 @@ onMounted(async () => {
               </el-select>
             </el-form-item>
           </el-col>
-          <el-col :span="8">
+          <el-col :span="12">
             <el-form-item label="投放定位">
               <el-input v-model="form.trafficLabel" placeholder="门店引流主推 / 同城种草" />
             </el-form-item>

@@ -1,26 +1,12 @@
-# CY11DSPHK Go 后端
+下载phpstudy 打开Mysql 
+go run ./cmd/main.go
+go mod tidy
+go clean -modcache
 
-当前阶段只做后台基础能力：
 
-- 登录、退出
-- JWT 鉴权
-- 用户、角色、菜单权限
-- 根据角色返回后端菜单
-- MySQL 自动建库、自动迁移、基础数据 seed
+$env:GOOS="linux"; $env:GOARCH="amd64"; $env:CGO_ENABLED="0"; go build -o app ./cmd/main.go   //打包 放上宝塔 
+运行 ./1.sh
 
-## 本地启动
+## 支付接入
 
-```powershell
-cd server
-copy .env.example .env
-go run ./cmd
-```
-
-默认数据库名：`cy11_dsphk`
-
-默认后台账号：
-
-- 账号：`admin`
-- 密码：`admin123456`
-
-前端开发环境已经代理 `/api` 到 `http://127.0.0.1:8989`。
+易支付环境变量、模拟回调、真实支付测试和上线检查见 [PAYMENT_TEST.md](./PAYMENT_TEST.md)。

@@ -35,7 +35,6 @@ const merchantOptions = ref<Merchant[]>([]);
 const benchmarkOptions = ref<BenchmarkAccount[]>([]);
 
 const statusOptions = ['待确认', '已采用', '停用'];
-const riskOptions = ['low', 'medium', 'high'];
 
 const form = reactive<GenerateTopicsPayload>({
   benchmarkId: undefined,
@@ -141,6 +140,7 @@ async function openGenerate() {
 }
 
 async function submitGenerate() {
+  if (generating.value) return;
   if (!form.merchantId) {
     ElMessage.warning('请选择商家');
     return;
@@ -163,9 +163,26 @@ async function submitGenerate() {
     dialogVisible.value = false;
     routeMerchantId.value = form.merchantId;
     await loadList();
+  } catch (error) {
+    ElMessage.error(getGenerateErrorMessage(error));
   } finally {
     generating.value = false;
   }
+}
+
+function getGenerateErrorMessage(error: unknown) {
+  const maybeError = error as {
+    error?: string;
+    message?: string;
+    response?: { data?: { error?: string; message?: string } };
+  };
+  const responseMessage =
+    maybeError?.response?.data?.error || maybeError?.response?.data?.message;
+  const message = maybeError?.error || maybeError?.message || responseMessage;
+  if (message?.includes('timeout')) {
+    return '找爆款超时：模型接口超过 120 秒未返回，请稍后重试';
+  }
+  return message ? `找爆款失败：${message}` : '找爆款失败：模型接口返回错误';
 }
 
 async function acceptTopic(row: ContentTopic) {
@@ -418,7 +435,12 @@ onMounted(async () => {
 
       <template #footer>
         <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="generating" @click="submitGenerate">
+        <el-button
+          type="primary"
+          :disabled="generating"
+          :loading="generating"
+          @click="submitGenerate"
+        >
           开始找爆款
         </el-button>
       </template>

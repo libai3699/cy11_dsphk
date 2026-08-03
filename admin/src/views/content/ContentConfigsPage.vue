@@ -208,7 +208,7 @@ onMounted(load);
           <el-input v-model="createForm.key_name" placeholder="例如 download_vpn_apk" />
         </el-form-item>
         <el-form-item label="显示名称">
-          <el-input v-model="createForm.label" placeholder="例如 VPN 下载地址" />
+          <el-input v-model="createForm.label" placeholder="例如 抖音来客后台地址" />
         </el-form-item>
         <el-form-item label="配置值">
           <el-input v-model="createForm.value" type="textarea" :rows="2" placeholder="请输入链接、版本号或联系方式" />

@@ -1,10 +1,14 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
+import { ElMessage } from 'element-plus';
 import { useRoute, useRouter } from 'vue-router';
 
-import { ElMessage } from 'element-plus';
-
-import { getMerchant, type Merchant } from '#/api/admin';
+import {
+  getMerchantWorkspace,
+  type Merchant,
+  type MerchantWorkspace,
+  type MerchantWorkspaceMetrics,
+} from '#/api/admin';
 
 defineOptions({ name: 'MerchantProcessPage' });
 
@@ -14,7 +18,10 @@ interface ProcessStep {
   actionText: string;
   desc: string;
   key: string;
+  metricText: string;
   missing: string[];
+  path: string;
+  query?: Record<string, number | string>;
   status: StepStatus;
   title: string;
 }
@@ -22,144 +29,170 @@ interface ProcessStep {
 const route = useRoute();
 const router = useRouter();
 const loading = ref(false);
-const merchant = ref<Merchant>();
+const workspace = ref<MerchantWorkspace>();
 
 const merchantId = computed(() => Number(route.params.id || 0));
+const merchant = computed<Merchant | undefined>(() => workspace.value?.merchant);
+const metrics = computed<MerchantWorkspaceMetrics | undefined>(() => workspace.value?.metrics);
 
-const basicMissing = computed(() => {
+const baseQuery = computed<Record<string, number | string> | undefined>(() => {
   const row = merchant.value;
-  if (!row) return ['商家档案'];
-  const missing: string[] = [];
-  if (!row.name) missing.push('商家名称');
-  if (!row.industry) missing.push('行业');
-  if (!row.city) missing.push('城市');
-  if (!row.contactName) missing.push('联系人');
-  if (!row.contactPhone) missing.push('联系电话');
-  return missing;
+  return row
+    ? {
+        merchantId: row.id,
+        merchantName: row.name,
+      }
+    : undefined;
 });
 
-const cooperationMissing = computed(() => {
-  const row = merchant.value;
-  if (!row) return ['合作规则'];
-  const missing: string[] = [];
-  if (!row.cooperationType) missing.push('合作方式');
-  if (!row.commissionRate || row.commissionRate <= 0) missing.push('分成比例');
-  return missing;
+const requirementMap = computed(() => {
+  const result: Record<string, string[]> = {};
+  for (const item of workspace.value?.requirements || []) {
+    result[item.key] = item.missing;
+  }
+  return result;
 });
 
-const accountMissing = computed(() => {
-  const row = merchant.value;
-  if (!row) return ['账号授权'];
-  const missing: string[] = [];
-  if (!row.douyinAccount) missing.push('抖音账号');
-  if (!row.douyinLaikeAccount) missing.push('抖音来客账号');
-  return missing;
-});
-
-const profileDone = computed(() => basicMissing.value.length === 0);
-const cooperationDone = computed(() => cooperationMissing.value.length === 0);
-const accountDone = computed(() => accountMissing.value.length === 0);
+const profileDone = computed(() => (requirementMap.value.profile || []).length === 0);
+const cooperationDone = computed(() => (requirementMap.value.cooperation || []).length === 0);
+const packageDone = computed(() => (requirementMap.value.package || []).length === 0);
+const accountDone = computed(() => (requirementMap.value.account || []).length === 0);
+const baseReady = computed(() => profileDone.value && cooperationDone.value);
+const contentReady = computed(() => baseReady.value && packageDone.value);
 
 const steps = computed<ProcessStep[]>(() => {
-  const canDoPackage = profileDone.value && cooperationDone.value;
-  const canDoAccount = profileDone.value;
-  const canDoDiagnosis = profileDone.value && cooperationDone.value && accountDone.value;
+  const m = metrics.value;
+  if (!merchant.value || !m) return [];
 
   return [
     {
-      actionText: '回列表编辑档案',
+      actionText: '编辑档案',
       desc: '确认商家是谁、在哪、做什么行业、谁负责对接。',
-      key: 'basic',
-      missing: basicMissing.value,
+      key: 'profile',
+      metricText: profileDone.value ? '资料已齐' : '资料未齐',
+      missing: requirementMap.value.profile || [],
+      path: '/users/list',
       status: profileDone.value ? 'done' : 'todo',
       title: '1. 商家基础档案',
     },
     {
-      actionText: '回列表补合作规则',
+      actionText: '补合作规则',
       desc: '确认合作方式、分成比例和当前合作阶段。',
       key: 'cooperation',
-      missing: cooperationMissing.value,
+      metricText: cooperationDone.value ? '合作规则已齐' : '合作规则未齐',
+      missing: requirementMap.value.cooperation || [],
+      path: '/users/list',
       status: cooperationDone.value ? 'done' : profileDone.value ? 'todo' : 'locked',
       title: '2. 合作规则确认',
     },
     {
-      actionText: '去建团购套餐',
+      actionText: '建套餐',
       desc: '没有套餐，就不知道视频到底推什么、利润空间够不够。',
       key: 'packages',
-      missing: ['团购套餐模块待开发'],
-      status: canDoPackage ? 'todo' : 'locked',
+      metricText: `${m.enabledPackageCount}/${m.packageCount} 个启用套餐`,
+      missing: requirementMap.value.package || [],
+      path: '/plans/list',
+      query: baseQuery.value,
+      status: packageDone.value ? 'done' : baseReady.value ? 'todo' : 'locked',
       title: '3. 团购套餐建档',
     },
     {
-      actionText: '去记录账号授权',
-      desc: '记录抖音账号、抖音来客账号和协作方式，先不做扫码登录。',
+      actionText: '记录授权',
+      desc: '记录抖音账号、来客账号和代登/协作方式。',
       key: 'account',
-      missing: accountMissing.value,
-      status: accountDone.value ? 'done' : canDoAccount ? 'todo' : 'locked',
+      metricText: `${m.activeAccountAuthCount}/${m.accountAuthCount} 条已授权`,
+      missing: requirementMap.value.account || [],
+      path: '/users/devices',
+      query: baseQuery.value,
+      status: accountDone.value ? 'done' : profileDone.value ? 'todo' : 'locked',
       title: '4. 账号授权记录',
     },
     {
-      actionText: '开始账号诊断',
-      desc: '资料、合作、账号都齐了，再让 Agent 做账号诊断。',
+      actionText: '账号诊断',
+      desc: '资料、合作、套餐和账号齐了，再让 Agent 做账号诊断。',
       key: 'diagnosis',
-      missing: canDoDiagnosis ? ['账号诊断 Agent 尚未接入'] : ['先补齐前置资料'],
-      status: canDoDiagnosis ? 'todo' : 'locked',
+      metricText: `${m.completedDiagnosisCount}/${m.diagnosisCount} 次已完成`,
+      missing: contentReady.value && accountDone.value ? [] : ['先补齐资料、套餐、账号授权'],
+      path: '/users/account-diagnosis',
+      query: baseQuery.value,
+      status: m.completedDiagnosisCount > 0 ? 'done' : contentReady.value && accountDone.value ? 'todo' : 'locked',
       title: '5. 账号诊断',
     },
     {
-      actionText: '整理对标账号',
-      desc: '诊断之后再找同城、同行、全国对标账号。',
+      actionText: '找对标',
+      desc: '找同城、同行、全国对标账号，拆内容结构和转化路径。',
       key: 'benchmark',
-      missing: ['等待账号诊断结果'],
-      status: 'locked',
+      metricText: `${m.analyzedBenchmarkCount}/${m.benchmarkCount} 个已分析`,
+      missing: contentReady.value ? [] : ['先补齐基础资料和套餐'],
+      path: '/lines/list',
+      query: baseQuery.value,
+      status: m.analyzedBenchmarkCount > 0 ? 'done' : contentReady.value ? 'todo' : 'locked',
       title: '6. 对标账号整理',
     },
     {
-      actionText: '生成选题池',
-      desc: '只有套餐、诊断和对标齐了，选题才有依据。',
+      actionText: '生成选题',
+      desc: '基于商家、套餐、对标和热点生成选题池。',
       key: 'topic',
-      missing: ['等待套餐、诊断、对标'],
-      status: 'locked',
+      metricText: `${m.acceptedTopicCount}/${m.topicCount} 条已采用`,
+      missing: contentReady.value ? [] : ['先补齐基础资料和套餐'],
+      path: '/content/notices',
+      query: baseQuery.value,
+      status: m.acceptedTopicCount > 0 ? 'done' : contentReady.value ? 'todo' : 'locked',
       title: '7. 生成选题池',
     },
     {
       actionText: '生成文案',
-      desc: '选题确认后，再生成开头、主体、结尾引导。',
+      desc: '选题采用后，再生成开头、主体、结尾引导。',
       key: 'copywriting',
-      missing: ['等待选题确认'],
-      status: 'locked',
+      metricText: `${m.confirmedScriptCount}/${m.scriptCount} 条已确认`,
+      missing: m.acceptedTopicCount > 0 ? [] : ['先采用至少 1 条选题'],
+      path: '/content/quotes',
+      query: baseQuery.value,
+      status: m.confirmedScriptCount > 0 ? 'done' : m.acceptedTopicCount > 0 ? 'todo' : 'locked',
       title: '8. 生成文案脚本',
     },
     {
       actionText: '生成分镜',
-      desc: '文案确认后，再拆成可拍摄镜头。',
+      desc: '文案确认后，再拆成可执行镜头清单。',
       key: 'storyboard',
-      missing: ['等待文案确认'],
-      status: 'locked',
+      metricText: `${m.confirmedStoryboardCount}/${m.storyboardCount} 条已确认`,
+      missing: m.confirmedScriptCount > 0 ? [] : ['先确认至少 1 条文案'],
+      path: '/content/discoveries',
+      query: baseQuery.value,
+      status: m.confirmedStoryboardCount > 0 ? 'done' : m.confirmedScriptCount > 0 ? 'todo' : 'locked',
       title: '9. 生成分镜脚本',
     },
     {
-      actionText: '安排拍摄',
-      desc: '分镜确认后，才分配拍摄任务。',
+      actionText: '派拍摄',
+      desc: '分镜确认后，分配拍摄/剪辑任务。',
       key: 'shooting',
-      missing: ['等待分镜确认'],
-      status: 'locked',
+      metricText: `${m.readyShootingTaskCount}/${m.shootingTaskCount} 个已剪辑/完成`,
+      missing: m.confirmedStoryboardCount > 0 ? [] : ['先确认至少 1 条分镜'],
+      path: '/logs/user',
+      query: baseQuery.value,
+      status: m.readyShootingTaskCount > 0 ? 'done' : m.confirmedStoryboardCount > 0 ? 'todo' : 'locked',
       title: '10. 拍摄任务',
     },
     {
-      actionText: '安排发布',
+      actionText: '排发布',
       desc: '视频素材完成后，再进入发布排期。',
       key: 'publish',
-      missing: ['等待拍摄剪辑完成'],
-      status: 'locked',
+      metricText: `${m.publishedScheduleCount}/${m.scheduleCount} 条已发布`,
+      missing: m.readyShootingTaskCount > 0 ? [] : ['先完成拍摄/剪辑'],
+      path: '/content/payments',
+      query: baseQuery.value,
+      status: m.publishedScheduleCount > 0 ? 'done' : m.readyShootingTaskCount > 0 ? 'todo' : 'locked',
       title: '11. 发布排期',
     },
     {
-      actionText: '发布后复盘',
+      actionText: '做复盘',
       desc: '发布后看播放、互动、成交、核销，再优化下一轮。',
       key: 'review',
-      missing: ['等待视频发布和数据回收'],
-      status: 'locked',
+      metricText: `${m.reviewCount} 条复盘`,
+      missing: m.publishedScheduleCount > 0 ? [] : ['先发布至少 1 条视频'],
+      path: '/logs/admin',
+      query: baseQuery.value,
+      status: m.reviewCount > 0 ? 'done' : m.publishedScheduleCount > 0 ? 'todo' : 'locked',
       title: '12. 数据复盘',
     },
   ];
@@ -167,17 +200,35 @@ const steps = computed<ProcessStep[]>(() => {
 
 const currentStep = computed(
   () =>
-    steps.value.find((item) => item.status !== 'done') ||
+    steps.value.find((item) => item.status === 'todo') ||
+    steps.value.find((item) => item.status === 'locked') ||
     steps.value[steps.value.length - 1],
 );
 const doneCount = computed(() => steps.value.filter((item) => item.status === 'done').length);
-const progressPercent = computed(() => Math.round((doneCount.value / steps.value.length) * 100));
+const progressPercent = computed(() =>
+  steps.value.length > 0 ? Math.round((doneCount.value / steps.value.length) * 100) : 0,
+);
 
-async function loadMerchant() {
+const statCards = computed(() => {
+  const m = metrics.value;
+  if (!m) return [];
+  return [
+    { label: '启用套餐', value: m.enabledPackageCount, total: m.packageCount },
+    { label: '已授权账号', value: m.activeAccountAuthCount, total: m.accountAuthCount },
+    { label: '已采用选题', value: m.acceptedTopicCount, total: m.topicCount },
+    { label: '已确认文案', value: m.confirmedScriptCount, total: m.scriptCount },
+    { label: '已确认分镜', value: m.confirmedStoryboardCount, total: m.storyboardCount },
+    { label: '待发布素材', value: m.readyShootingTaskCount, total: m.shootingTaskCount },
+    { label: '已发布视频', value: m.publishedScheduleCount, total: m.scheduleCount },
+    { label: '复盘记录', value: m.reviewCount, total: m.reviewCount },
+  ];
+});
+
+async function loadWorkspace() {
   if (!merchantId.value) return;
   loading.value = true;
   try {
-    merchant.value = await getMerchant(merchantId.value);
+    workspace.value = await getMerchantWorkspace(merchantId.value);
   } finally {
     loading.value = false;
   }
@@ -188,31 +239,20 @@ function handleStepAction(step: ProcessStep) {
     ElMessage.warning(`还不能做：${step.missing.join('、')}`);
     return;
   }
-
-  if (step.key === 'packages') {
-    router.push('/plans/list');
-    return;
-  }
-  if (step.key === 'account') {
-    router.push('/users/devices');
-    return;
-  }
-  if (step.key === 'basic' || step.key === 'cooperation') {
-    router.push('/users/list');
-    return;
-  }
-
-  ElMessage.info('这个步骤的具体页面和 Agent 接口后续开发。');
+  router.push({
+    path: step.path,
+      query: step.query,
+  });
 }
 
-onMounted(loadMerchant);
+onMounted(loadWorkspace);
 </script>
 
 <template>
   <div class="p-4">
     <el-skeleton v-if="loading" animated :rows="8" />
 
-    <template v-else-if="merchant">
+    <template v-else-if="merchant && metrics">
       <el-card class="mb-4">
         <div class="process-head">
           <div>
@@ -226,14 +266,31 @@ onMounted(loadMerchant);
             </div>
           </div>
           <div class="stage-card">
-            <div class="stage-label">当前系统建议</div>
+            <div class="stage-label">当前应该处理</div>
             <div class="stage-title">{{ currentStep?.title }}</div>
             <div class="stage-desc">{{ currentStep?.desc }}</div>
+            <el-button
+              class="stage-button"
+              type="primary"
+              :disabled="!currentStep || currentStep.status !== 'todo'"
+              @click="currentStep && handleStepAction(currentStep)"
+            >
+              {{ currentStep?.actionText || '暂无动作' }}
+            </el-button>
           </div>
         </div>
 
         <el-progress :percentage="progressPercent" :stroke-width="12" />
       </el-card>
+
+      <el-row :gutter="16" class="mb-4">
+        <el-col v-for="item in statCards" :key="item.label" :span="6">
+          <el-card shadow="never" class="stat-card">
+            <div class="stat-label">{{ item.label }}</div>
+            <div class="stat-value">{{ item.value }}<span>/ {{ item.total }}</span></div>
+          </el-card>
+        </el-col>
+      </el-row>
 
       <el-row :gutter="16">
         <el-col :span="16">
@@ -255,7 +312,12 @@ onMounted(loadMerchant);
                   <span v-else>做</span>
                 </div>
                 <div class="step-main">
-                  <div class="step-title">{{ step.title }}</div>
+                  <div class="step-line">
+                    <div class="step-title">{{ step.title }}</div>
+                    <el-tag size="small" :type="step.status === 'done' ? 'success' : step.status === 'todo' ? 'primary' : 'info'">
+                      {{ step.metricText }}
+                    </el-tag>
+                  </div>
                   <div class="step-desc">{{ step.desc }}</div>
                   <div v-if="step.missing.length > 0" class="step-missing">
                     缺：{{ step.missing.join('、') }}
@@ -277,11 +339,23 @@ onMounted(loadMerchant);
         <el-col :span="8">
           <el-card class="mb-4">
             <template #header>
-              <div class="section-title">现在不要做什么</div>
+              <div class="section-title">前置条件检查</div>
             </template>
-            <el-alert type="warning" :closable="false" show-icon>
-              资料没齐之前，不应该直接做选题、文案、分镜。否则 Agent 没上下文，输出就会变成泛泛而谈。
-            </el-alert>
+            <div
+              v-for="item in workspace?.requirements || []"
+              :key="item.key"
+              class="requirement-item"
+            >
+              <el-tag :type="item.done ? 'success' : 'warning'">
+                {{ item.done ? '已齐' : '缺' }}
+              </el-tag>
+              <div>
+                <div class="requirement-title">{{ item.title }}</div>
+                <div class="requirement-missing">
+                  {{ item.done ? '可以进入后续流程' : item.missing.join('、') }}
+                </div>
+              </div>
+            </div>
           </el-card>
 
           <el-card>
@@ -348,7 +422,7 @@ h2 {
 }
 
 .stage-card {
-  width: 360px;
+  width: 380px;
   border-radius: 16px;
   background: #eef4ff;
   padding: 16px;
@@ -371,6 +445,34 @@ h2 {
   color: #475569;
   font-size: 13px;
   line-height: 1.6;
+}
+
+.stage-button {
+  margin-top: 12px;
+}
+
+.stat-card {
+  margin-bottom: 16px;
+  border-radius: 14px;
+}
+
+.stat-label {
+  color: #64748b;
+  font-size: 13px;
+}
+
+.stat-value {
+  margin-top: 8px;
+  color: #0f172a;
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.stat-value span {
+  margin-left: 4px;
+  color: #94a3b8;
+  font-size: 13px;
+  font-weight: 500;
 }
 
 .section-title {
@@ -435,6 +537,13 @@ h2 {
   flex: 1;
 }
 
+.step-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
 .step-title {
   color: #0f172a;
   font-weight: 700;
@@ -450,6 +559,24 @@ h2 {
 
 .step-missing {
   color: #b45309;
+}
+
+.requirement-item {
+  display: flex;
+  gap: 10px;
+  border-bottom: 1px solid #f1f5f9;
+  padding: 12px 0;
+}
+
+.requirement-title {
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.requirement-missing {
+  margin-top: 4px;
+  color: #64748b;
+  font-size: 13px;
 }
 
 .info-row {

@@ -24,6 +24,11 @@ func MigrateAndSeed(cfg config.Config) error {
 		&model.BenchmarkAnalysisTask{},
 		&model.ContentTopic{},
 		&model.HotspotTopicTask{},
+		&model.ContentScript{},
+		&model.ContentStoryboard{},
+		&model.ShootingTask{},
+		&model.PublishSchedule{},
+		&model.ContentReviewTask{},
 	); err != nil {
 		return err
 	}

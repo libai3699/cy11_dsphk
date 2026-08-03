@@ -78,7 +78,7 @@ async function removeLine(row: VpnLine) {
 function openAssign(row: VpnLine) {
   Object.assign(assignForm, {
     line_id: row.id,
-    notice: `你的 VPN 线路已切换为：${row.name}`,
+    notice: `当前内容来源已切换为：${row.name}`,
     user_id: undefined,
   });
   assignOpen.value = true;

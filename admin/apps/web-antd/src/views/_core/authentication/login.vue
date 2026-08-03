@@ -21,9 +21,13 @@ async function submit() {
   <main class="cy-login-page">
     <section class="cy-login-card">
       <div class="cy-login-brand">
-        <img alt="内容获客后台" class="cy-login-logo" src="/logo.png" />
+        <img
+          alt="短视频获客"
+          class="cy-login-logo"
+          src="/logo.png?v=short-video-leads"
+        />
         <div>
-          <h1>本地商家抖音获客后台</h1>
+          <h1>短视频获客</h1>
           <p>后台账号由系统分配，只保留登录入口。</p>
         </div>
       </div>

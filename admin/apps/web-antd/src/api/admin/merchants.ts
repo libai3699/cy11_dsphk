@@ -44,6 +44,42 @@ export interface MerchantListResult {
   size: number;
 }
 
+export interface MerchantWorkspaceMetrics {
+  acceptedTopicCount: number;
+  accountAuthCount: number;
+  activeAccountAuthCount: number;
+  analyzedBenchmarkCount: number;
+  benchmarkCount: number;
+  completedDiagnosisCount: number;
+  confirmedScriptCount: number;
+  confirmedStoryboardCount: number;
+  diagnosisCount: number;
+  enabledPackageCount: number;
+  packageCount: number;
+  publishedScheduleCount: number;
+  readyShootingTaskCount: number;
+  reviewCount: number;
+  scheduleCount: number;
+  scriptCount: number;
+  shootingTaskCount: number;
+  storyboardCount: number;
+  topicCount: number;
+}
+
+export interface MerchantRequirementStatus {
+  done: boolean;
+  key: string;
+  missing: string[];
+  title: string;
+}
+
+export interface MerchantWorkspace {
+  completeness: number;
+  merchant: Merchant;
+  metrics: MerchantWorkspaceMetrics;
+  requirements: MerchantRequirementStatus[];
+}
+
 export function getMerchantList(params: {
   keyword?: string;
   page?: number;
@@ -60,6 +96,18 @@ export function updateMerchant(id: number, data: MerchantPayload) {
   return requestClient.put<Merchant>(`/merchants/${id}`, data);
 }
 
+export function deleteMerchant(id: number) {
+  return requestClient.delete<{
+    deleted: Record<string, number>;
+    id: number;
+    name: string;
+  }>(`/merchants/${id}`);
+}
+
 export function getMerchant(id: number) {
   return requestClient.get<Merchant>(`/merchants/${id}`);
+}
+
+export function getMerchantWorkspace(id: number) {
+  return requestClient.get<MerchantWorkspace>(`/merchants/${id}/workspace`);
 }

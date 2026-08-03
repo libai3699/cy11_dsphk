@@ -4,10 +4,13 @@ import type { FormInstance } from 'element-plus';
 import { computed, onMounted, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
-import { ElMessage } from 'element-plus';
+import { useUserStore } from '@vben/stores';
+
+import { ElMessage, ElMessageBox } from 'element-plus';
 
 import {
   createMerchant,
+  deleteMerchant,
   getMerchantList,
   updateMerchant,
   type Merchant,
@@ -17,6 +20,7 @@ import {
 defineOptions({ name: 'UserListPage' });
 
 const router = useRouter();
+const userStore = useUserStore();
 
 const loading = ref(false);
 const dialogVisible = ref(false);
@@ -27,6 +31,9 @@ const formRef = ref<FormInstance>();
 const searchForm = reactive({ keyword: '' });
 const pagination = reactive({ page: 1, size: 10, total: 0 });
 const list = ref<Merchant[]>([]);
+const canDeleteMerchant = computed(() =>
+  (userStore.userInfo?.roles || []).includes('super_admin'),
+);
 
 const form = reactive<MerchantPayload>({
   address: '',
@@ -206,6 +213,51 @@ async function toggleStatus(row: Merchant) {
   await loadList();
 }
 
+async function handleDelete(row: Merchant) {
+  if (!canDeleteMerchant.value) {
+    ElMessage.error('只有超级管理员可以删除商家');
+    return;
+  }
+
+  try {
+    await ElMessageBox.confirm(
+      `确定删除「${row.name}」吗？确认后会同时物理删除该商家的套餐、账号授权、账号诊断、对标分析、选题、文案、分镜、拍摄任务、发布排期、数据复盘等全部关联数据，无法恢复。`,
+      '删除商家及全部关联数据',
+      {
+        cancelButtonText: '取消',
+        confirmButtonText: '确认删除',
+        type: 'warning',
+      },
+    );
+
+    const result = await deleteMerchant(row.id);
+    const totalDeleted = Object.values(result.deleted || {}).reduce(
+      (sum, value) => sum + Number(value || 0),
+      0,
+    );
+    ElMessage.success(
+      `已删除「${result.name || row.name}」及 ${totalDeleted} 条关联数据`,
+    );
+    await loadList();
+  } catch (error) {
+    if (error === 'cancel' || error === 'close') {
+      return;
+    }
+    const maybeError = error as {
+      error?: string;
+      message?: string;
+      response?: { data?: { error?: string; message?: string } };
+    };
+    ElMessage.error(
+      maybeError?.response?.data?.error ||
+        maybeError?.response?.data?.message ||
+        maybeError?.error ||
+        maybeError?.message ||
+        '删除商家失败',
+    );
+  }
+}
+
 function handlePageChange(page: number) {
   pagination.page = page;
   loadList();
@@ -294,7 +346,7 @@ onMounted(loadList);
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="280" fixed="right">
+        <el-table-column label="操作" width="360" fixed="right">
           <template #default="{ row }">
             <el-button size="small" @click="openEdit(row)">编辑档案</el-button>
             <el-button size="small" @click="toggleStatus(row)">
@@ -302,6 +354,14 @@ onMounted(loadList);
             </el-button>
             <el-button size="small" type="primary" @click="handleDirectAction(row)">
               {{ getDirectActionText(row) }}
+            </el-button>
+            <el-button
+              v-if="canDeleteMerchant"
+              size="small"
+              type="danger"
+              @click="handleDelete(row)"
+            >
+              删除
             </el-button>
           </template>
         </el-table-column>

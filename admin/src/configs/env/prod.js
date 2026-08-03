@@ -1,10 +1,9 @@
 const config = {
   APP_ENV: 'prod',
-  APP_TITLE: '9点9 Admin',
-  APP_NAMESPACE: 'vben-admin',
+  APP_TITLE: '短视频获客',
+  APP_NAMESPACE: 'short-video-leads-admin',
   APP_VERSION: '1.0.0',
-  //API_BASE_URL: 'https://vpnapi.wangwei.tech/api/admin',
-  API_BASE_URL: 'http://127.0.0.1/api/admin',
+  API_BASE_URL: 'https://dspapi.wangwei.tech/api/admin',
   PORT: 5666,
   BASE: '/',
   NITRO_MOCK: false,

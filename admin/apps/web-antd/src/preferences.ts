@@ -18,15 +18,15 @@ interface WebAntdPreferencesExtension {
 export const overridesPreferences = defineOverridesPreferences({
   // overrides
   app: {
-    name: import.meta.env.VITE_APP_TITLE,
+    name: '短视频获客',
     accessMode: 'backend',
     defaultHomePath: '/workspace',
   },
   logo: {
     enable: true,
     fit: 'cover',
-    source: '/logo.png',
-    sourceDark: '/logo.png',
+    source: '/logo.png?v=short-video-leads',
+    sourceDark: '/logo.png?v=short-video-leads',
   },
 });
 

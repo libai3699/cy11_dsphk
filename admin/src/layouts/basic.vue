@@ -99,8 +99,8 @@ async function handleLogout() {
     <!-- 侧边栏 -->
     <aside :class="['layout-sider', { collapsed }]">
       <div class="sider-logo">
-        <span v-if="!collapsed">9点9 Admin</span>
-        <span v-else>9.9</span>
+        <span v-if="!collapsed">短视频获客</span>
+        <span v-else>获客</span>
       </div>
       <nav class="sider-menu">
         <template v-for="item in menuItems" :key="item.key">

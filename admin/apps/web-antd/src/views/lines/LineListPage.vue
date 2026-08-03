@@ -424,7 +424,7 @@ onMounted(async () => {
               <el-input v-model="form.accountName" placeholder="例如：@贵阳火锅局" />
             </el-form-item>
           </el-col>
-          <el-col :span="8">
+          <el-col :span="12">
             <el-form-item label="平台">
               <el-select v-model="form.platform" style="width: 100%">
                 <el-option
@@ -436,12 +436,12 @@ onMounted(async () => {
               </el-select>
             </el-form-item>
           </el-col>
-          <el-col :span="8">
+          <el-col :span="12">
             <el-form-item label="城市">
               <el-input v-model="form.city" placeholder="例如：贵阳" />
             </el-form-item>
           </el-col>
-          <el-col :span="8">
+          <el-col :span="12">
             <el-form-item label="行业/赛道">
               <el-input v-model="form.industry" placeholder="火锅 / 烘焙 / 本地生活" />
             </el-form-item>
@@ -451,7 +451,7 @@ onMounted(async () => {
               <el-input v-model="form.accountUrl" placeholder="主页链接，可先不填" />
             </el-form-item>
           </el-col>
-          <el-col :span="6">
+          <el-col :span="12">
             <el-form-item label="粉丝数">
               <el-input-number
                 v-model="form.followerCount"
@@ -460,7 +460,7 @@ onMounted(async () => {
               />
             </el-form-item>
           </el-col>
-          <el-col :span="6">
+          <el-col :span="12">
             <el-form-item label="最高播放">
               <el-input-number
                 v-model="form.bestPlayCount"

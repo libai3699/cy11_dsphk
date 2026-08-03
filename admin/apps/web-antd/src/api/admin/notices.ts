@@ -70,7 +70,9 @@ export function getContentTopicList(params: {
 }
 
 export function generateContentTopics(data: GenerateTopicsPayload) {
-  return requestClient.post<HotspotTopicTask>('/topics/generate', data);
+  return requestClient.post<HotspotTopicTask>('/topics/generate', data, {
+    timeout: 120_000,
+  });
 }
 
 export function updateContentTopicStatus(id: number, status: string) {

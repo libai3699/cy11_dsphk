@@ -43,7 +43,7 @@ type Output struct {
 }
 
 func (Agent) Run(ctx context.Context, input Input) (Output, error) {
-	client, ok := provider.NewStepFunFromEnv()
+	client, ok := provider.NewStepFunForAgent(Name)
 	if !ok {
 		return Output{}, agent.ErrProviderNotConfigured
 	}

@@ -120,7 +120,9 @@ func (h *ContentTopicHandler) Generate(c *gin.Context) {
 		return
 	}
 
-	output, runErr := hotspottopic.Agent{}.Run(context.Background(), input)
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 120*time.Second)
+	defer cancel()
+	output, runErr := hotspottopic.Agent{}.Run(ctx, input)
 	if runErr != nil {
 		task.Status = model.HotspotTopicTaskStatusFailed
 		task.ErrorMessage = runErr.Error()

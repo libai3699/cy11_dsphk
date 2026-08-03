@@ -7,7 +7,7 @@ defineOptions({ name: 'WorkspacePage' });
     <el-card>
       <template #header>
         <div class="card-header">
-          <span>欢迎使用 9点9 VPN 管理后台</span>
+          <span>欢迎使用短视频获客后台</span>
         </div>
       </template>
       <div class="welcome-content">

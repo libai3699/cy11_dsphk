@@ -8,6 +8,7 @@ import (
 	"cy11dsphk/server/internal/database"
 	basehandler "cy11dsphk/server/internal/handler"
 	"cy11dsphk/server/internal/model"
+	"cy11dsphk/server/internal/service"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -40,6 +41,42 @@ type merchantListResponse struct {
 	Total int64            `json:"total"`
 	Page  int              `json:"page"`
 	Size  int              `json:"size"`
+}
+
+type merchantWorkspaceResponse struct {
+	Merchant     model.Merchant              `json:"merchant"`
+	Completeness int                         `json:"completeness"`
+	Metrics      merchantWorkspaceMetrics    `json:"metrics"`
+	Requirements []merchantRequirementStatus `json:"requirements"`
+}
+
+type merchantWorkspaceMetrics struct {
+	PackageCount             int64 `json:"packageCount"`
+	EnabledPackageCount      int64 `json:"enabledPackageCount"`
+	AccountAuthCount         int64 `json:"accountAuthCount"`
+	ActiveAccountAuthCount   int64 `json:"activeAccountAuthCount"`
+	DiagnosisCount           int64 `json:"diagnosisCount"`
+	CompletedDiagnosisCount  int64 `json:"completedDiagnosisCount"`
+	BenchmarkCount           int64 `json:"benchmarkCount"`
+	AnalyzedBenchmarkCount   int64 `json:"analyzedBenchmarkCount"`
+	TopicCount               int64 `json:"topicCount"`
+	AcceptedTopicCount       int64 `json:"acceptedTopicCount"`
+	ScriptCount              int64 `json:"scriptCount"`
+	ConfirmedScriptCount     int64 `json:"confirmedScriptCount"`
+	StoryboardCount          int64 `json:"storyboardCount"`
+	ConfirmedStoryboardCount int64 `json:"confirmedStoryboardCount"`
+	ShootingTaskCount        int64 `json:"shootingTaskCount"`
+	ReadyShootingTaskCount   int64 `json:"readyShootingTaskCount"`
+	ScheduleCount            int64 `json:"scheduleCount"`
+	PublishedScheduleCount   int64 `json:"publishedScheduleCount"`
+	ReviewCount              int64 `json:"reviewCount"`
+}
+
+type merchantRequirementStatus struct {
+	Key     string   `json:"key"`
+	Title   string   `json:"title"`
+	Done    bool     `json:"done"`
+	Missing []string `json:"missing"`
 }
 
 func (h *MerchantHandler) List(c *gin.Context) {
@@ -106,6 +143,32 @@ func (h *MerchantHandler) Get(c *gin.Context) {
 	basehandler.OK(c, merchant)
 }
 
+func (h *MerchantHandler) Workspace(c *gin.Context) {
+	id, ok := parseUint64Param(c, "id")
+	if !ok {
+		return
+	}
+
+	var merchant model.Merchant
+	if err := database.DB.First(&merchant, id).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			basehandler.BadRequest(c, "商家不存在")
+			return
+		}
+		basehandler.ServerError(c, "读取商家失败")
+		return
+	}
+
+	metrics := buildMerchantWorkspaceMetrics(merchant.ID)
+	requirements := buildMerchantRequirements(merchant, metrics)
+	basehandler.OK(c, merchantWorkspaceResponse{
+		Merchant:     merchant,
+		Completeness: calculateCompleteness(requirements),
+		Metrics:      metrics,
+		Requirements: requirements,
+	})
+}
+
 func (h *MerchantHandler) Create(c *gin.Context) {
 	var payload merchantPayload
 	if err := c.ShouldBindJSON(&payload); err != nil {
@@ -127,6 +190,104 @@ func (h *MerchantHandler) Create(c *gin.Context) {
 	}
 
 	basehandler.OK(c, merchant)
+}
+
+func buildMerchantWorkspaceMetrics(merchantID uint64) merchantWorkspaceMetrics {
+	return merchantWorkspaceMetrics{
+		PackageCount:             countByMerchant(&model.MerchantPackage{}, merchantID, ""),
+		EnabledPackageCount:      countByMerchant(&model.MerchantPackage{}, merchantID, "status = ?", model.MerchantPackageStatusEnabled),
+		AccountAuthCount:         countByMerchant(&model.MerchantAccountAuth{}, merchantID, ""),
+		ActiveAccountAuthCount:   countByMerchant(&model.MerchantAccountAuth{}, merchantID, "auth_status = ?", model.MerchantAccountAuthStatusActive),
+		DiagnosisCount:           countByMerchant(&model.AccountDiagnosisTask{}, merchantID, ""),
+		CompletedDiagnosisCount:  countByMerchant(&model.AccountDiagnosisTask{}, merchantID, "status = ?", model.AccountDiagnosisStatusCompleted),
+		BenchmarkCount:           countByMerchant(&model.BenchmarkAccount{}, merchantID, ""),
+		AnalyzedBenchmarkCount:   countByMerchant(&model.BenchmarkAccount{}, merchantID, "status = ?", model.BenchmarkAccountStatusAnalyzed),
+		TopicCount:               countByMerchant(&model.ContentTopic{}, merchantID, ""),
+		AcceptedTopicCount:       countByMerchant(&model.ContentTopic{}, merchantID, "status = ?", model.ContentTopicStatusAccepted),
+		ScriptCount:              countByMerchant(&model.ContentScript{}, merchantID, ""),
+		ConfirmedScriptCount:     countByMerchant(&model.ContentScript{}, merchantID, "status = ?", model.ContentScriptStatusConfirmed),
+		StoryboardCount:          countByMerchant(&model.ContentStoryboard{}, merchantID, ""),
+		ConfirmedStoryboardCount: countByMerchant(&model.ContentStoryboard{}, merchantID, "status = ?", model.ContentStoryboardStatusConfirmed),
+		ShootingTaskCount:        countByMerchant(&model.ShootingTask{}, merchantID, ""),
+		ReadyShootingTaskCount:   countByMerchant(&model.ShootingTask{}, merchantID, "status IN ?", []string{model.ShootingTaskStatusEdited, model.ShootingTaskStatusDone}),
+		ScheduleCount:            countByMerchant(&model.PublishSchedule{}, merchantID, ""),
+		PublishedScheduleCount:   countByMerchant(&model.PublishSchedule{}, merchantID, "status IN ?", []string{model.PublishScheduleStatusPublished, model.PublishScheduleStatusReviewed}),
+		ReviewCount:              countByMerchant(&model.ContentReviewTask{}, merchantID, ""),
+	}
+}
+
+func countByMerchant(table any, merchantID uint64, condition string, args ...any) int64 {
+	query := database.DB.Model(table).Where("merchant_id = ?", merchantID)
+	if condition != "" {
+		query = query.Where(condition, args...)
+	}
+	var total int64
+	_ = query.Count(&total).Error
+	return total
+}
+
+func buildMerchantRequirements(merchant model.Merchant, metrics merchantWorkspaceMetrics) []merchantRequirementStatus {
+	return []merchantRequirementStatus{
+		{
+			Key:     "profile",
+			Title:   "基础档案",
+			Done:    merchant.Name != "" && merchant.Industry != "" && merchant.City != "" && merchant.ContactName != "" && merchant.ContactPhone != "",
+			Missing: missingFields([]fieldCheck{{"商家名称", merchant.Name != ""}, {"行业", merchant.Industry != ""}, {"城市", merchant.City != ""}, {"联系人", merchant.ContactName != ""}, {"联系电话", merchant.ContactPhone != ""}}),
+		},
+		{
+			Key:     "cooperation",
+			Title:   "合作规则",
+			Done:    merchant.CooperationType != "" && merchant.CommissionRate > 0,
+			Missing: missingFields([]fieldCheck{{"合作方式", merchant.CooperationType != ""}, {"分成比例", merchant.CommissionRate > 0}}),
+		},
+		{
+			Key:     "package",
+			Title:   "团购套餐",
+			Done:    metrics.EnabledPackageCount > 0,
+			Missing: missingCount(metrics.EnabledPackageCount > 0, "至少 1 个启用套餐"),
+		},
+		{
+			Key:     "account",
+			Title:   "账号授权",
+			Done:    merchant.DouyinAccount != "" && metrics.ActiveAccountAuthCount > 0,
+			Missing: missingFields([]fieldCheck{{"抖音账号", merchant.DouyinAccount != ""}, {"至少 1 条已授权记录", metrics.ActiveAccountAuthCount > 0}}),
+		},
+	}
+}
+
+type fieldCheck struct {
+	Label string
+	Done  bool
+}
+
+func missingFields(fields []fieldCheck) []string {
+	result := []string{}
+	for _, field := range fields {
+		if !field.Done {
+			result = append(result, field.Label)
+		}
+	}
+	return result
+}
+
+func missingCount(done bool, label string) []string {
+	if done {
+		return []string{}
+	}
+	return []string{label}
+}
+
+func calculateCompleteness(requirements []merchantRequirementStatus) int {
+	if len(requirements) == 0 {
+		return 0
+	}
+	done := 0
+	for _, requirement := range requirements {
+		if requirement.Done {
+			done++
+		}
+	}
+	return done * 100 / len(requirements)
 }
 
 func (h *MerchantHandler) Update(c *gin.Context) {
@@ -168,6 +329,94 @@ func (h *MerchantHandler) Update(c *gin.Context) {
 	}
 
 	basehandler.OK(c, merchant)
+}
+
+func (h *MerchantHandler) Delete(c *gin.Context) {
+	id, ok := parseUint64Param(c, "id")
+	if !ok {
+		return
+	}
+	if !currentAdminHasRole(c, "super_admin") {
+		basehandler.Forbidden(c, "只有超级管理员可以删除商家")
+		return
+	}
+
+	var merchant model.Merchant
+	if err := database.DB.First(&merchant, id).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			basehandler.BadRequest(c, "商家不存在")
+			return
+		}
+		basehandler.ServerError(c, "读取商家失败")
+		return
+	}
+
+	deleted, err := deleteMerchantCascade(id)
+	if err != nil {
+		basehandler.ServerError(c, "删除商家失败")
+		return
+	}
+
+	basehandler.OK(c, gin.H{
+		"id":      id,
+		"name":    merchant.Name,
+		"deleted": deleted,
+	})
+}
+
+func deleteMerchantCascade(merchantID uint64) (map[string]int64, error) {
+	deleted := map[string]int64{}
+	err := database.DB.Transaction(func(tx *gorm.DB) error {
+		steps := []struct {
+			key   string
+			model any
+		}{
+			{key: "content_reviews", model: &model.ContentReviewTask{}},
+			{key: "publish_schedules", model: &model.PublishSchedule{}},
+			{key: "shooting_tasks", model: &model.ShootingTask{}},
+			{key: "storyboards", model: &model.ContentStoryboard{}},
+			{key: "scripts", model: &model.ContentScript{}},
+			{key: "topics", model: &model.ContentTopic{}},
+			{key: "hotspot_topic_tasks", model: &model.HotspotTopicTask{}},
+			{key: "benchmark_analysis_tasks", model: &model.BenchmarkAnalysisTask{}},
+			{key: "benchmark_accounts", model: &model.BenchmarkAccount{}},
+			{key: "account_diagnoses", model: &model.AccountDiagnosisTask{}},
+			{key: "account_auths", model: &model.MerchantAccountAuth{}},
+			{key: "packages", model: &model.MerchantPackage{}},
+		}
+
+		for _, step := range steps {
+			result := tx.Where("merchant_id = ?", merchantID).Delete(step.model)
+			if result.Error != nil {
+				return result.Error
+			}
+			deleted[step.key] = result.RowsAffected
+		}
+
+		result := tx.Delete(&model.Merchant{}, merchantID)
+		if result.Error != nil {
+			return result.Error
+		}
+		if result.RowsAffected == 0 {
+			return gorm.ErrRecordNotFound
+		}
+		deleted["merchants"] = result.RowsAffected
+		return nil
+	})
+	return deleted, err
+}
+
+func currentAdminHasRole(c *gin.Context, roleCode string) bool {
+	roleCodes, err := service.GetUserRoleCodes(c.GetUint64("admin_user_id"))
+	if err != nil {
+		return false
+	}
+	for _, code := range roleCodes {
+		if code == roleCode {
+			return true
+		}
+	}
+	return false
 }
 
 func merchantUpdateMap(merchant model.Merchant) map[string]any {
