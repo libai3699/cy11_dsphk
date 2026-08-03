@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"net/url"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -22,6 +23,10 @@ func CORS() gin.HandlerFunc {
 }
 
 func allowDevOrigin(origin string) bool {
+	if allowConfiguredOrigin(origin) {
+		return true
+	}
+
 	parsed, err := url.Parse(origin)
 	if err != nil {
 		return false
@@ -42,6 +47,43 @@ func allowDevOrigin(origin string) bool {
 		if len(parts) > 1 {
 			second, err := strconv.Atoi(parts[1])
 			return err == nil && second >= 16 && second <= 31
+		}
+	}
+	return false
+}
+
+func allowConfiguredOrigin(origin string) bool {
+	origin = strings.TrimSpace(origin)
+	if origin == "" {
+		return false
+	}
+
+	defaultAllowed := []string{
+		"https://dspadmin.wangwei.tech",
+	}
+	for _, allowed := range defaultAllowed {
+		if origin == allowed {
+			return true
+		}
+	}
+
+	for _, allowed := range strings.Split(os.Getenv("CORS_ALLOW_ORIGINS"), ",") {
+		allowed = strings.TrimSpace(allowed)
+		if allowed == "" {
+			continue
+		}
+		if allowed == "*" || origin == allowed {
+			return true
+		}
+		if strings.HasPrefix(allowed, "*.") {
+			parsed, err := url.Parse(origin)
+			if err != nil {
+				continue
+			}
+			suffix := strings.TrimPrefix(allowed, "*")
+			if strings.HasSuffix(parsed.Hostname(), suffix) {
+				return true
+			}
 		}
 	}
 	return false
