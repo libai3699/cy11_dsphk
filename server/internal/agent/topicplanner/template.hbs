@@ -1,0 +1,29 @@
+# 本周选题表 · {{summary}}
+
+## 一、选题清单（{{week}}）
+
+| 序号 | 标题 | 支柱 | 关联套餐 | 切入钩子 | 来源 | 优先级 | 难度 | 出镜角色 |
+|------|------|------|----------|----------|------|--------|------|----------|
+{{#each topics}}| {{seq}} | {{title}} | {{pillar}} | {{linkedProduct}} | {{hookIdea}} | {{sourceRefs}} | {{priority}} | {{effort}} | {{expectedRole}} |
+{{/each}}
+
+## 二、支柱平衡
+
+| 支柱类型 | 条数 |
+|----------|------|
+{{#each pillarBalance.byPillar}}| {{@key}} | {{this}} |
+{{/each}}
+
+## 三、已放弃的选题候选
+
+| 候选方向 | 放弃原因 |
+|----------|----------|
+{{#each dropped}}| {{idea}} | {{reason}} |
+{{/each}}
+
+{{#if warnings}}
+## ⚠️ 提示
+
+{{#each warnings}}- {{this}}
+{{/each}}
+{{/if}}

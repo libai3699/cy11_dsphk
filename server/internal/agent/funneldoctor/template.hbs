@@ -1,0 +1,33 @@
+# 漏斗诊断 · {{period}}
+
+## 一、漏斗阶段总览
+
+| 阶段 | 数值 | 转化率 | 健康基准 | 健康度 |
+|------|------|--------|----------|--------|
+{{#each funnel}}| {{stage}} | {{value}} | {{rate}}% | {{benchmark}} | {{health}} |
+{{/each}}
+
+## 二、瓶颈环节
+
+- **瓶颈阶段**：{{bottleneck.stage}}
+- **严重程度**：{{bottleneck.severity}}
+- **判定依据**：{{bottleneck.evidence}}
+
+## 三、一周内可执行动作（≤3 条）
+
+| 动作 | 针对阶段 | 预期提升 | 投入 | 责任角色 |
+|------|----------|----------|------|----------|
+{{#each actions}}| {{action}} | {{targetStage}} | {{expectedLift}} | {{effort}} | {{owner}} |
+{{/each}}
+
+## 四、待观察项
+
+{{#each watchlist}}- {{this}}
+{{/each}}
+
+{{#if warnings}}
+## ⚠️ 提示
+
+{{#each warnings}}- {{this}}
+{{/each}}
+{{/if}}

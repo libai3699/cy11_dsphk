@@ -1,0 +1,74 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://zaotai.local/schemas/a6.output.json",
+  "title": "A6 节奏调度师 · 输出契约（artifactType: calendar.plan）",
+  "description": "跨工单契约：WO-031 的 mock fixture 与 WO-021 Runner 校验共用本形状，字段名不得增删。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["range", "slots", "weeklyRhythm", "bufferSlots", "risks"],
+  "properties": {
+    "range": {
+      "type": "string",
+      "minLength": 1,
+      "description": "排期覆盖范围，如 2026-W33~W34"
+    },
+    "slots": {
+      "type": "array",
+      "minItems": 2,
+      "description": "逐条排期，按日期先后排列",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["date", "timeSlot", "scriptRef", "contentType", "rationale"],
+        "properties": {
+          "date": { "type": "string", "minLength": 1, "description": "发布日期，如 2026-08-17" },
+          "timeSlot": { "type": "string", "minLength": 1, "description": "发布时段，取自输入 constraints.可发布时段" },
+          "scriptRef": { "type": "string", "minLength": 1, "description": "对应已确认脚本的 artifactId；无对应脚本时为「通用档期」" },
+          "contentType": {
+            "type": "string",
+            "enum": ["口播", "分镜", "图文", "直播"],
+            "description": "内容类型，四类之一"
+          },
+          "rationale": { "type": "string", "minLength": 1, "description": "排期理由：结合门店阶段、目标顾客时段习惯与类型轮换，可回溯" }
+        }
+      }
+    },
+    "weeklyRhythm": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["postsPerWeek", "pillarSequence"],
+      "properties": {
+        "postsPerWeek": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "每周发布条数，不得超过输入 constraints.每周可拍条数"
+        },
+        "pillarSequence": {
+          "type": "array",
+          "minItems": 1,
+          "description": "内容类型轮换序列，相邻类型尽量错开",
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "bufferSlots": {
+      "type": "array",
+      "description": "缓冲档期，可空；用于补拍、追热点、节假日备播等机动安排",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "risks": {
+      "type": "array",
+      "minItems": 2,
+      "description": "排期风险与对策；人力波动、脚本未齐、节假日、时段冲突等情况必须在此说明",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["risk", "mitigation"],
+        "properties": {
+          "risk": { "type": "string", "minLength": 1, "description": "风险描述" },
+          "mitigation": { "type": "string", "minLength": 1, "description": "应对措施" }
+        }
+      }
+    }
+  }
+}

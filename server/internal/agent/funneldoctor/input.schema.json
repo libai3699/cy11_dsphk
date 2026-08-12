@@ -1,0 +1,67 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://zaotai.local/schemas/a7.input.json",
+  "title": "A7 漏斗医生 · 输入契约",
+  "description": "门店一个周期的六阶段漏斗数据（播放/5秒完播率/团购点击/成交/下单/核销）。缺必填字段时 Runner 直接拒绝执行，不靠模型兜底。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["clientId", "period", "metrics"],
+  "properties": {
+    "clientId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "门店档案目录名，用于装配 L2 档案层，如 xiangcaiguan"
+    },
+    "period": {
+      "type": "string",
+      "minLength": 1,
+      "description": "数据所属周期，如 2026-07-28 至 2026-08-03"
+    },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["播放", "5秒完播率", "团购点击", "成交", "下单", "核销"],
+      "properties": {
+        "播放": {
+          "type": "number",
+          "minimum": 0,
+          "description": "周期内内容总播放量"
+        },
+        "5秒完播率": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "5 秒完播率，百分比 0-100"
+        },
+        "团购点击": {
+          "type": "number",
+          "minimum": 0,
+          "description": "周期内团购商品点击量"
+        },
+        "成交": {
+          "type": "number",
+          "minimum": 0,
+          "description": "周期内团购成交单量"
+        },
+        "下单": {
+          "type": "number",
+          "minimum": 0,
+          "description": "周期内下单单量"
+        },
+        "核销": {
+          "type": "number",
+          "minimum": 0,
+          "description": "周期内核销单量"
+        }
+      }
+    },
+    "baseline": {
+      "type": "object",
+      "description": "可选。上一周期的漏斗数据，用于对比变化，不参与本轮指标定义"
+    },
+    "notes": {
+      "type": "string",
+      "description": "可选。运营补充说明，如 本周有节日活动"
+    }
+  }
+}

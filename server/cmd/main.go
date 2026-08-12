@@ -6,6 +6,7 @@ import (
 	"cy11dsphk/server/internal/config"
 	"cy11dsphk/server/internal/database"
 	"cy11dsphk/server/internal/router"
+	"cy11dsphk/server/internal/seed"
 )
 
 func main() {
@@ -17,6 +18,10 @@ func main() {
 
 	if err := database.MigrateAndSeed(cfg); err != nil {
 		log.Fatalf("migrate database failed: %v", err)
+	}
+
+	if err := seed.SeedKnowledge(database.DB); err != nil {
+		log.Fatalf("seed knowledge failed: %v", err)
 	}
 
 	r := router.New(cfg)

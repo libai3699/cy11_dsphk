@@ -1,0 +1,29 @@
+# 热点雷达 · {{summary}}
+
+## 一、热点清单
+
+| 标题 | 分类 | 热度 | 本地相关度 | 时效衰减 | 过期时间 | 来源 |
+|------|------|------|------------|----------|----------|------|
+{{#each items}}| {{title}} | {{category}} | {{heatLevel}} | {{localRelevance}} | {{decayEstimate}} | {{expiresAt}} | {{sourceRef}} |
+{{/each}}
+
+## 二、Top Picks（建议优先跟进）
+
+{{#each topPicks}}- {{this}}
+{{else}}- （无）
+{{/each}}
+
+## 三、已剔除
+
+| 内容 | 原因 |
+|------|------|
+{{#each discarded}}| {{item}} | {{reason}} |
+{{else}}- （无）
+{{/each}}
+
+{{#if warnings}}
+## ⚠️ 提示
+
+{{#each warnings}}- {{this}}
+{{/each}}
+{{/if}}

@@ -1,0 +1,56 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://zaotai.local/schemas/a2.input.json",
+  "title": "A2 热点雷达 · 输入契约",
+  "description": "杂乱粘贴的热搜词/话题/链接原文。缺必填字段时 Runner 直接拒绝执行，不靠模型兜底。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["clientId", "region", "industry", "rawItems", "windowDays"],
+  "properties": {
+    "clientId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "门店档案目录名，用于装配 L2 档案层，如 xiangcaiguan"
+    },
+    "region": {
+      "type": "string",
+      "description": "门店所在城市，如 长沙。用于判断本地相关度"
+    },
+    "industry": {
+      "type": "string",
+      "description": "所属行业/品类，如 湘菜/本地生活。用于判断品类相关度"
+    },
+    "rawItems": {
+      "type": "array",
+      "minItems": 1,
+      "description": "原始粘贴内容，每条至少一段可读文本；重复、乱码、广告可保留，由模型清洗去重",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["text"],
+        "properties": {
+          "text": {
+            "type": "string",
+            "minLength": 1,
+            "description": "粘贴的热搜词/话题/链接原文"
+          },
+          "source": {
+            "type": "string",
+            "description": "可选。来源标注，如 抖音热搜 / 微博话题 / 公众号"
+          },
+          "capturedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "可选。抓取时间，ISO 8601，用于判断时效起点"
+          }
+        }
+      }
+    },
+    "windowDays": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 30,
+      "description": "本次整理的时效窗口天数，expiresAt 应落在窗口内或给出窗口外可接受的判断"
+    }
+  }
+}

@@ -4,6 +4,8 @@ import (
 	"cy11dsphk/server/internal/config"
 	adminhandler "cy11dsphk/server/internal/handler/admin"
 	"cy11dsphk/server/internal/middleware"
+	"cy11dsphk/server/internal/model"
+	"cy11dsphk/server/internal/service"
 
 	"github.com/gin-gonic/gin"
 )
@@ -81,6 +83,37 @@ func New(cfg config.Config) *gin.Engine {
 			protected.GET("/reviews", adminContentProduction.ListReviews)
 			protected.POST("/reviews/generate", adminContentProduction.GenerateReview)
 			protected.GET("/agent-configs", adminContentProduction.AgentConfigs)
+
+			// 运营知识库（M1）：痛点/案例/账号画像/平台规则/内容模板
+			protected.GET("/knowledge/pain-points", knowledgeList[model.PainPoint](service.ListPainPoints))
+			protected.GET("/knowledge/pain-points/:id", knowledgeGet[model.PainPoint](service.GetPainPoint))
+			protected.POST("/knowledge/pain-points", knowledgeCreate[model.PainPoint](service.CreatePainPoint))
+			protected.PUT("/knowledge/pain-points/:id", knowledgeUpdate[model.PainPoint](service.UpdatePainPoint))
+			protected.DELETE("/knowledge/pain-points/:id", knowledgeDelete(service.DeletePainPoint))
+
+			protected.GET("/knowledge/case-studies", knowledgeList[model.CaseStudy](service.ListCaseStudies))
+			protected.GET("/knowledge/case-studies/:id", knowledgeGet[model.CaseStudy](service.GetCaseStudy))
+			protected.POST("/knowledge/case-studies", knowledgeCreate[model.CaseStudy](service.CreateCaseStudy))
+			protected.PUT("/knowledge/case-studies/:id", knowledgeUpdate[model.CaseStudy](service.UpdateCaseStudy))
+			protected.DELETE("/knowledge/case-studies/:id", knowledgeDelete(service.DeleteCaseStudy))
+
+			protected.GET("/knowledge/account-profiles", knowledgeList[model.AccountProfile](service.ListAccountProfiles))
+			protected.GET("/knowledge/account-profiles/:id", knowledgeGet[model.AccountProfile](service.GetAccountProfile))
+			protected.POST("/knowledge/account-profiles", knowledgeCreate[model.AccountProfile](service.CreateAccountProfile))
+			protected.PUT("/knowledge/account-profiles/:id", knowledgeUpdate[model.AccountProfile](service.UpdateAccountProfile))
+			protected.DELETE("/knowledge/account-profiles/:id", knowledgeDelete(service.DeleteAccountProfile))
+
+			protected.GET("/knowledge/platform-rules", knowledgeList[model.PlatformRule](service.ListPlatformRules))
+			protected.GET("/knowledge/platform-rules/:id", knowledgeGet[model.PlatformRule](service.GetPlatformRule))
+			protected.POST("/knowledge/platform-rules", knowledgeCreate[model.PlatformRule](service.CreatePlatformRule))
+			protected.PUT("/knowledge/platform-rules/:id", knowledgeUpdate[model.PlatformRule](service.UpdatePlatformRule))
+			protected.DELETE("/knowledge/platform-rules/:id", knowledgeDelete(service.DeletePlatformRule))
+
+			protected.GET("/knowledge/content-templates", knowledgeList[model.ContentTemplate](service.ListContentTemplates))
+			protected.GET("/knowledge/content-templates/:id", knowledgeGet[model.ContentTemplate](service.GetContentTemplate))
+			protected.POST("/knowledge/content-templates", knowledgeCreate[model.ContentTemplate](service.CreateContentTemplate))
+			protected.PUT("/knowledge/content-templates/:id", knowledgeUpdate[model.ContentTemplate](service.UpdateContentTemplate))
+			protected.DELETE("/knowledge/content-templates/:id", knowledgeDelete(service.DeleteContentTemplate))
 		}
 	}
 

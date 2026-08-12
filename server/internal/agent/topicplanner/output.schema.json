@@ -1,0 +1,112 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://zaotai.local/schemas/a4.output.json",
+  "title": "A4 选题策划官 · 输出契约（artifactType: topic.plan）",
+  "description": "跨工单契约：WO-029 的 mock fixture 与通用 Runner 校验共用本形状，字段名不得增删。summary 为编排者授权额外字段。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["week", "topics", "pillarBalance", "dropped", "summary"],
+  "properties": {
+    "week": {
+      "type": "string",
+      "minLength": 1,
+      "description": "选题所属周标签，与输入的 weekLabel 一致，如 2026-W33"
+    },
+    "topics": {
+      "type": "array",
+      "minItems": 2,
+      "description": "本周选题表。每条必须可溯源到上游产物，linkedProduct 必须为档案中真实存在的团购套餐",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["seq", "title", "pillar", "linkedProduct", "hookIdea", "sourceRefs", "priority", "effort", "expectedRole"],
+        "properties": {
+          "seq": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "选题序号，从 1 起"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "description": "选题标题，可读、可直接作为脚本创作方向"
+          },
+          "pillar": {
+            "type": "string",
+            "minLength": 1,
+            "description": "支柱类型，取自 content-pillars，如 招牌菜 / 热点借势 / 顾客证言"
+          },
+          "linkedProduct": {
+            "type": "string",
+            "minLength": 1,
+            "description": "关联的团购套餐，必须与档案逐字一致，不得自创价格"
+          },
+          "hookIdea": {
+            "type": "string",
+            "minLength": 1,
+            "description": "切入钩子设想，一句话，不展开成具体脚本"
+          },
+          "sourceRefs": {
+            "type": "array",
+            "minItems": 1,
+            "description": "支撑本选题的上游 artifactId（热点/爆款拆解/漏斗诊断），必须真实存在于 L3 上下文",
+            "items": { "type": "string", "minLength": 1 }
+          },
+          "priority": {
+            "type": "string",
+            "enum": ["高", "中", "低"],
+            "description": "优先级，只允许三档"
+          },
+          "effort": {
+            "type": "string",
+            "enum": ["低", "中", "高"],
+            "description": "拍摄难度，只允许三档"
+          },
+          "expectedRole": {
+            "type": "string",
+            "minLength": 1,
+            "description": "预期出镜角色，如 老板 / 后厨 / 店员 / 不出镜"
+          }
+        }
+      }
+    },
+    "pillarBalance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["byPillar"],
+      "properties": {
+        "byPillar": {
+          "type": "object",
+          "additionalProperties": { "type": "number", "minimum": 0 },
+          "description": "各支柱类型条数分布，键为支柱名，值须与 topics 实际分布一致"
+        }
+      }
+    },
+    "dropped": {
+      "type": "array",
+      "description": "被放弃的选题候选（可空数组）。每条写明候选方向与放弃原因",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["idea", "reason"],
+        "properties": {
+          "idea": {
+            "type": "string",
+            "minLength": 1,
+            "description": "被放弃的选题方向"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "description": "放弃原因，如 超出人力约束 / 与热点时效不匹配"
+          }
+        }
+      }
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 1,
+      "description": "一句话总述本周选题策略。上下文装配裁剪下游 Agent 时只保留本字段"
+    }
+  }
+}

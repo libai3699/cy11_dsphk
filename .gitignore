@@ -48,3 +48,6 @@ server/.mysql-root-data*/
 Thumbs.db
 .idea/
 .vscode/
+
+# WorkBuddy agent runtime / memory (project-internal, not for remote)
+.workbuddy/
