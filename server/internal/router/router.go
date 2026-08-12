@@ -24,6 +24,7 @@ func New(cfg config.Config) *gin.Engine {
 	adminContentTopic := adminhandler.NewContentTopicHandler()
 	adminContentProduction := adminhandler.NewContentProductionHandler()
 	adminWorkspace := adminhandler.NewWorkspaceHandler()
+	adminCateringAgent := adminhandler.NewCateringAgentHandler()
 
 	api := r.Group("/api/admin")
 	{
@@ -83,6 +84,15 @@ func New(cfg config.Config) *gin.Engine {
 			protected.GET("/reviews", adminContentProduction.ListReviews)
 			protected.POST("/reviews/generate", adminContentProduction.GenerateReview)
 			protected.GET("/agent-configs", adminContentProduction.AgentConfigs)
+
+			// 餐饮获客 Agent（M4'）：对标侦察 / 热点雷达 / 爆款拆解 / 选题规划
+			protected.POST("/agents/benchmarkscout/run", adminCateringAgent.RunBenchmarkScout)
+			protected.POST("/agents/hotspotradar/run", adminCateringAgent.RunHotspotRadar)
+			protected.POST("/agents/viralanatomist/run", adminCateringAgent.RunViralAnatomist)
+			protected.POST("/agents/topicplanner/run", adminCateringAgent.RunTopicPlanner)
+			protected.POST("/agents/scriptwriter/run", adminCateringAgent.RunScriptWriter)
+			protected.POST("/agents/rhythmscheduler/run", adminCateringAgent.RunRhythmScheduler)
+			protected.POST("/agents/funneldoctor/run", adminCateringAgent.RunFunnelDoctor)
 
 			// 运营知识库（M1）：痛点/案例/账号画像/平台规则/内容模板
 			protected.GET("/knowledge/pain-points", knowledgeList[model.PainPoint](service.ListPainPoints))
