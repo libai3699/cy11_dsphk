@@ -7,7 +7,6 @@ export * from './notices';
 export * from './configs';
 export * from './content-production';
 export * from './knowledge';
-export * from './shooting-tasks';
 export * from './lines';
 export * from './logs';
 export * from './merchants';
