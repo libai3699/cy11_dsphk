@@ -72,6 +72,12 @@ const routes: RouteRecordRaw[] = [
         component: () => import('#/views/lines/LineListPage.vue'),
         meta: { icon: 'carbon:network-4', title: '对标账号库' },
       },
+      {
+        name: 'PlatformResearchPage',
+        path: '/lines/research',
+        component: () => import('#/views/lines/PlatformResearchPage.vue'),
+        meta: { icon: 'carbon:search-locate', title: '平台调研' },
+      },
     ],
   },
   {

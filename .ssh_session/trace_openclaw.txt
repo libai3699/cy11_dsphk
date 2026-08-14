@@ -1,0 +1,128 @@
+﻿>>>> ps -o pid,ppid,user,lstart,cmd -p $(pgrep -f openclaw-gateway | tr '\n' ',' | sed 's/,$//') 2>/dev/null; echo '---'; pstree -asp $(pgrep -n 
+    PID    PPID USER                      STARTED CMD
+2762987    4099 root     Tue Aug  4 13:19:43 2026 openclaw-gateway
+2763169 2763114 root     Tue Aug  4 13:20:27 2026 bash -c ps -o pid,ppid,user,lstart,cmd -p $(pgrep -f openclaw-gateway | tr '\n' ',' | sed 's/,$//') 2>/dev/null; echo '---'; pstree -asp $(pgrep -n openclaw-gateway) 2>/dev/null | head -30
+---
+systemd,1 --system --deserialize=80
+  |-1panel-agent,6812
+  |   |-{1panel-agent},6815
+  |   |-{1panel-agent},6816
+  |   |-{1panel-agent},6817
+  |   |-{1panel-agent},6828
+  |   |-{1panel-agent},6836
+  |   |-{1panel-agent},7067
+  |   `-{1panel-agent},99727
+  |-1panel-core,6806
+  |   |-{1panel-core},6808
+  |   |-{1panel-core},6809
+  |   |-{1panel-core},6810
+  |   |-{1panel-core},6822
+  |   |-{1panel-core},6825
+  |   |-{1panel-core},7204
+  |   `-{1panel-core},7205
+  |-BT-Panel,1943300 /www/server/panel/BT-Panel
+  |-BT-Task,1943320 /www/server/panel/BT-Task
+  |   |-{BT-Task},1943338
+  |   |-{BT-Task},1943339
+  |   |-{BT-Task},1943340
+  |   |-{BT-Task},1943341
+  |   `-{BT-Task},1943342
+  |-ModemManager,4160642
+  |   |-{ModemManager},4160645
+  |   |-{ModemManager},4160646
+  |   `-{ModemManager},4160649
+  |-PM2 v6.0.14: Go,1752673
+  |   |-{PM2 v6.0.14: Go},1752674
+
+[stderr]
+pgrep: pattern that searches for process name longer than 15 characters will result in zero matches
+Try `pgrep -f' option to match against the complete command line.
+>>>> systemctl status $(systemctl list-units --all --no-pager --type=service | awk '/openclaw|claw/{print $1}') 2>/dev/null | head -40
+鈼?srv1514888
+    State: degraded
+    Units: 481 loaded (incl. loaded aliases)
+     Jobs: 0 queued
+   Failed: 1 units
+    Since: Sat 2026-03-21 05:06:12 UTC; 4 months 14 days ago
+  systemd: 255.4-1ubuntu8.14
+   CGroup: /
+           鈹溾攢init.scope
+           鈹?鈹斺攢1 /usr/lib/systemd/systemd --system --deserialize=80
+           鈹溾攢system.slice
+           鈹?鈹溾攢1panel-agent.service
+           鈹?鈹?鈹斺攢6812 /usr/bin/1panel-agent
+           鈹?鈹溾攢1panel-core.service
+           鈹?鈹?鈹斺攢6806 /usr/bin/1panel-core
+           鈹?鈹溾攢BT-FirewallServices.service
+           鈹?鈹?鈹斺攢1766982 /www/server/panel/pyenv/bin/python3 /www/server/panel/script/BT-FirewallServices.py start
+           鈹?鈹溾攢ModemManager.service
+           鈹?鈹?鈹斺攢4160642 /usr/sbin/ModemManager
+           鈹?鈹溾攢atd.service
+           鈹?鈹?鈹斺攢1710645 /usr/sbin/atd -f
+           鈹?鈹溾攢containerd.service
+           鈹?鈹?鈹斺攢3536 /usr/bin/containerd
+           鈹?鈹溾攢cron.service
+           鈹?鈹?鈹斺攢1712500 /usr/sbin/cron -f -P
+           鈹?鈹溾攢dbus.service
+           鈹?鈹?鈹斺攢800 @dbus-daemon --system --address=systemd: --nofork --nopidfile --systemd-activation --syslog-only
+           鈹?鈹溾攢docker.service
+           鈹?鈹?鈹斺攢3670 /usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock
+           鈹?鈹溾攢dspapi.service
+           鈹?鈹?鈹斺攢2756741 /www/wwwroot/dspapi.wangwei.tech/app
+           鈹?鈹溾攢fwupd.service
+           鈹?鈹?鈹斺攢2438806 /usr/libexec/fwupd/fwupd
+           鈹?鈹溾攢multipathd.service
+           鈹?鈹?鈹斺攢1398296 /sbin/multipathd -d -s
+           鈹?鈹溾攢mysqld.service
+           鈹?鈹?鈹溾攢2760636 /bin/sh /www/server/mysql/bin/mysqld_safe --defaults-file=/etc/my.cnf --datadir=/www/server/data --pid-file=/www/server/data/srv1514888.pid
+           鈹?鈹?鈹斺攢2761229 /www/server/mysql/bin/mysqld --defaults-file=/etc/my.cnf --basedir=/www/server/mysql --datadir=/www/server/data --plugin-dir=/www/server/mysql/lib/plugin --user=mysql --log-error=srv1514888.err --open-files-limit=65535 --pid-file=/www/server/data/srv1514888.pid --socket=/tmp/mysql.sock --port=3306
+           鈹?鈹溾攢polkit.service
+           鈹?鈹?鈹斺攢4160629 /usr/lib/polkit-1/polkitd --no-debug
+>>>> ls -la /etc/systemd/system/*openclaw* /lib/systemd/system/*openclaw* /etc/systemd/system/*claw* 2>/dev/null; systemctl list-unit-files | gre
+>>>> ls -la /root/.openclaw/; ls /root/.config 2>/dev/null | head; crontab -l 2>/dev/null; ls /etc/cron.d/ 2>/dev/null
+total 80
+drwx------ 12 root root 4096 Aug  4 10:17 .
+dr-xr-x--- 15 root root 4096 Aug  4 13:15 ..
+drwx------  3 root root 4096 Mar 21 08:03 agents
+drwxr-xr-x  2 root root 4096 Mar 21 08:17 canvas
+drwxr-xr-x  2 root root 4096 Mar 21 08:18 completions
+drwx------  2 root root 4096 Mar 21 10:18 credentials
+drwx------  2 root root 4096 Mar 21 08:17 cron
+drwxr-xr-x  2 root root 4096 Mar 21 10:26 devices
+-rw-------  1 root root  171 Mar 21 08:36 exec-approvals.json
+drwxr-xr-x  2 root root 4096 Mar 21 08:17 identity
+drwx------  2 root root 4096 Mar 21 08:04 logs
+-rw-------  1 root root 1731 Mar 21 10:26 openclaw.json
+-rw-------  1 root root 1731 Mar 21 10:26 openclaw.json.bak
+-rw-------  1 root root 1672 Mar 21 10:26 openclaw.json.bak.1
+-rw-------  1 root root 1672 Mar 21 10:17 openclaw.json.bak.2
+-rw-------  1 root root 1325 Mar 21 10:16 openclaw.json.bak.3
+-rw-------  1 root root 1166 Mar 21 08:17 openclaw.json.bak.4
+drwxr-xr-x  2 root root 4096 Mar 21 10:27 telegram
+-rw-------  1 root root  191 Aug  4 10:17 update-check.json
+drwxr-xr-x  4 root root 4096 Mar 21 08:04 workspace
+nextjs-nodejs
+procps
+systemd
+LANG=en_US.UTF-8
+LC_ALL=en_US.UTF-8
+
+42 6 * * *  /www/server/cron/3ab48c27ec99cb9787749c362afae517 >> /www/server/cron/3ab48c27ec99cb9787749c362afae517.log 2>&1
+docker-image-prune
+e2scrub_all
+sysstat
+>>>> grep -RIl openclaw /etc/systemd /etc/cron* /root --include='*.service' --include='*.timer' --include='*.sh' 2>/dev/null | head -40
+/root/.config/systemd/user/openclaw-gateway.service
+/root/.config/systemd/user/default.target.wants/openclaw-gateway.service
+>>>> tr '\0' ' ' < /proc/$(pgrep -n openclaw-gateway)/cmdline; echo; ls -l /proc/$(pgrep -n openclaw-gateway)/cwd /proc/$(pgrep -n openclaw-gatew
+BOOT_IMAGE=/vmlinuz-6.8.0-90-generic root=UUID=0905329d-4022-4692-bb5d-b614c117dd8c ro console=tty0 console=ttyS0,115200 earlyprintk=ttyS0,115200 consoleblank=0 memhp_default_state=online console=tty1 console=ttyS0
+
+
+[stderr]
+pgrep: pattern that searches for process name longer than 15 characters will result in zero matches
+Try `pgrep -f' option to match against the complete command line.
+pgrep: pattern that searches for process name longer than 15 characters will result in zero matches
+Try `pgrep -f' option to match against the complete command line.
+pgrep: pattern that searches for process name longer than 15 characters will result in zero matches
+Try `pgrep -f' option to match against the complete command line.
+DONE_TRACE

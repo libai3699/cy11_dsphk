@@ -1,0 +1,59 @@
+﻿>>>> cat /root/.config/systemd/user/openclaw-gateway.service
+[Unit]
+Description=OpenClaw Gateway (v2026.3.13)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+ExecStart=/usr/bin/node /usr/lib/node_modules/openclaw/dist/index.js gateway --port 18789
+Restart=always
+RestartSec=5
+TimeoutStopSec=30
+TimeoutStartSec=30
+SuccessExitStatus=0 143
+KillMode=control-group
+Environment=HOME=/root
+Environment=TMPDIR=/tmp
+Environment=PATH=/root/.local/bin:/root/.npm-global/bin:/root/bin:/root/.volta/bin:/root/.asdf/shims:/root/.bun/bin:/root/.nvm/current/bin:/root/.fnm/current/bin:/root/.local/share/pnpm:/usr/local/bin:/usr/bin:/bin
+Environment=OPENCLAW_GATEWAY_PORT=18789
+Environment=OPENCLAW_SYSTEMD_UNIT=openclaw-gateway.service
+Environment="OPENCLAW_WINDOWS_TASK_NAME=OpenClaw Gateway"
+Environment=OPENCLAW_SERVICE_MARKER=openclaw
+Environment=OPENCLAW_SERVICE_KIND=gateway
+Environment=OPENCLAW_SERVICE_VERSION=2026.3.13
+
+[Install]
+WantedBy=default.target
+>>>> 
+export XDG_RUNTIME_DIR=/run/user/0
+export DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/0/bus
+systemctl --user disable --now openclaw-gateway.service 2>&1
+syste
+Removed "/root/.config/systemd/user/default.target.wants/openclaw-gateway.service".
+鈼?openclaw-gateway.service - OpenClaw Gateway (v2026.3.13)
+     Loaded: loaded (/root/.config/systemd/user/openclaw-gateway.service; disabled; preset: enabled)
+     Active: inactive (dead)
+
+Aug 04 13:19:49 srv1514888 node[2762987]: 2026-08-04T13:19:49.183+00:00 [browser/server] Browser control listening on http://127.0.0.1:18791/ (auth=token)
+Aug 04 13:19:49 srv1514888 node[2762987]: 2026-08-04T13:19:49.879+00:00 [telegram] [default] starting provider (@wangweiGpt02_bot)
+Aug 04 13:19:49 srv1514888 node[2762987]: 2026-08-04T13:19:49.884+00:00 [telegram] autoSelectFamily=true (default-node22)
+Aug 04 13:19:49 srv1514888 node[2762987]: 2026-08-04T13:19:49.885+00:00 [telegram] dnsResultOrder=ipv4first (default-node22)
+Aug 04 13:21:09 srv1514888 systemd[4099]: Stopping openclaw-gateway.service - OpenClaw Gateway (v2026.3.13)...
+Aug 04 13:21:09 srv1514888 node[2762987]: 2026-08-04T13:21:09.690+00:00 [gateway] signal SIGTERM received
+Aug 04 13:21:09 srv1514888 node[2762987]: 2026-08-04T13:21:09.693+00:00 [gateway] received SIGTERM; shutting down
+Aug 04 13:21:09 srv1514888 node[2762987]: 2026-08-04T13:21:09.800+00:00 [gmail-watcher] gmail watcher stopped
+Aug 04 13:21:09 srv1514888 systemd[4099]: Stopped openclaw-gateway.service - OpenClaw Gateway (v2026.3.13).
+Aug 04 13:21:09 srv1514888 systemd[4099]: openclaw-gateway.service: Consumed 8.745s CPU time, 486.1M memory peak, 0B memory swap peak.
+>>>> 
+# 彻底移除用户服务，防止再启用
+rm -f /root/.config/systemd/user/openclaw-gateway.service
+rm -f /root/.config/systemd/user/default.target.wants/openclaw-gateway.service
+expor
+>>>> sleep 5; ps auxww | grep -i openclaw | grep -v grep || echo still_dead; ss -lntp | grep -E '18789|18710|18711|18799' || echo ports_still_closed; df -h /; system
+still_dead
+ports_still_closed
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/sda1        96G   12G   84G  13% /
+active
+active
+DONE_DISABLE

@@ -17,7 +17,7 @@ type ContentTopic struct {
 	MerchantID      uint64    `gorm:"index;not null" json:"merchantId"`
 	MerchantName    string    `gorm:"size:128;not null;default:''" json:"merchantName"`
 	BenchmarkID     uint64    `gorm:"index;not null;default:0" json:"benchmarkId"`
-	BenchmarkName   string    `gorm:"size:128;not null;default:''" json:"benchmarkName"`
+	BenchmarkName   string    `gorm:"size:500;not null;default:''" json:"benchmarkName"`
 	Title           string    `gorm:"size:255;not null;index" json:"title"`
 	Hook            string    `gorm:"size:500;not null;default:''" json:"hook"`
 	Angle           string    `gorm:"size:255;not null;default:''" json:"angle"`
@@ -39,7 +39,7 @@ type HotspotTopicTask struct {
 	MerchantID    uint64    `gorm:"index;not null" json:"merchantId"`
 	MerchantName  string    `gorm:"size:128;not null;default:''" json:"merchantName"`
 	BenchmarkID   uint64    `gorm:"index;not null;default:0" json:"benchmarkId"`
-	BenchmarkName string    `gorm:"size:128;not null;default:''" json:"benchmarkName"`
+	BenchmarkName string    `gorm:"size:500;not null;default:''" json:"benchmarkName"`
 	Status        string    `gorm:"size:32;not null;default:'执行中'" json:"status"`
 	InputSnapshot string    `gorm:"type:text" json:"inputSnapshot"`
 	ResultJSON    string    `gorm:"type:text" json:"resultJson"`

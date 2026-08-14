@@ -1,0 +1,9 @@
+﻿>>>> rm -rf /opt/1panel/resource/apps/remote/openclaw /opt/1panel/resource/icon/app_openclaw.png /tmp/openclaw-0 /tmp/jiti/pl
+rm_ok
+
+>>>> find /opt /root /tmp /usr /var -iname '*openclaw*' 2>/dev/null | head -40; find /opt /root /tmp /usr -iname '*clawd*' 2>
+---
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/sda1        96G   12G   85G  12% /
+
+DONE

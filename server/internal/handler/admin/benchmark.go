@@ -39,6 +39,11 @@ type benchmarkAccountPayload struct {
 	Remark         string  `json:"remark"`
 }
 
+type benchmarkAnalyzeBatchPayload struct {
+	MerchantID   uint64   `json:"merchantId" binding:"required"`
+	BenchmarkIDs []uint64 `json:"benchmarkIds"`
+}
+
 type benchmarkAccountListResponse struct {
 	List  []model.BenchmarkAccount `json:"list"`
 	Total int64                    `json:"total"`
@@ -224,46 +229,98 @@ func (h *BenchmarkHandler) Analyze(c *gin.Context) {
 		return
 	}
 
+	task, runErr := runBenchmarkAnalysis(c, merchant, []model.BenchmarkAccount{item})
+	if runErr != nil {
+		basehandler.ServerError(c, "对标分析失败")
+		return
+	}
+	basehandler.OK(c, buildBenchmarkAnalysisResponse(task))
+}
+
+func (h *BenchmarkHandler) AnalyzeBatch(c *gin.Context) {
+	var payload benchmarkAnalyzeBatchPayload
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		basehandler.BadRequest(c, "请选择商家")
+		return
+	}
+
+	var merchant model.Merchant
+	if err := database.DB.First(&merchant, payload.MerchantID).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			basehandler.BadRequest(c, "商家不存在")
+			return
+		}
+		basehandler.ServerError(c, "读取商家失败")
+		return
+	}
+
+	var accounts []model.BenchmarkAccount
+	query := database.DB.Where("merchant_id = ?", merchant.ID)
+	if len(payload.BenchmarkIDs) > 0 {
+		query = query.Where("id IN ?", payload.BenchmarkIDs)
+	}
+	if err := query.Order("best_play_count DESC, follower_count DESC, id DESC").Find(&accounts).Error; err != nil {
+		basehandler.ServerError(c, "读取对标账号失败")
+		return
+	}
+	if len(accounts) == 0 {
+		basehandler.BadRequest(c, "该商家还没有可分析的对标账号")
+		return
+	}
+
+	task, runErr := runBenchmarkAnalysis(c, merchant, accounts)
+	if runErr != nil {
+		basehandler.ServerError(c, "对标分析失败")
+		return
+	}
+	basehandler.OK(c, buildBenchmarkAnalysisResponse(task))
+}
+
+func runBenchmarkAnalysis(c *gin.Context, merchant model.Merchant, accounts []model.BenchmarkAccount) (model.BenchmarkAnalysisTask, error) {
+	operatorID := c.GetUint64("admin_user_id")
+	input := benchmarkagent.Input{
+		MerchantID: merchant.ID,
+		Industry:   merchant.Industry,
+		City:       merchant.City,
+		Options:    agent.RunOptions{OperatorID: operatorID, DryRun: true},
+	}
+	for _, item := range accounts {
+		input.BenchmarkAccounts = append(input.BenchmarkAccounts, benchmarkagent.BenchmarkAccount{
+			Name:       item.AccountName,
+			PlatformID: item.AccountURL,
+			Reason:     item.Takeaway,
+			Tags:       []string{item.City, item.Industry, item.LatestHitTitle},
+		})
+	}
+
+	benchmarkID, benchmarkName := benchmarkIdentity(accounts)
 	snapshot := map[string]any{
-		"merchant":     merchant,
-		"benchmark":    item,
-		"snapshotTime": time.Now().Format("2006-01-02 15:04:05"),
+		"merchant":       merchant,
+		"benchmarks":     accounts,
+		"agentInput":     input,
+		"snapshotTime":   time.Now().Format("2006-01-02 15:04:05"),
+		"snapshotSource": "admin_benchmark_analysis",
 	}
 	inputSnapshot, err := json.Marshal(snapshot)
 	if err != nil {
-		basehandler.ServerError(c, "输入快照生成失败")
-		return
+		return model.BenchmarkAnalysisTask{}, errors.New("输入快照生成失败")
 	}
 
 	task := model.BenchmarkAnalysisTask{
 		MerchantID:         merchant.ID,
 		MerchantName:       merchant.Name,
-		BenchmarkAccountID: item.ID,
-		BenchmarkName:      item.AccountName,
+		BenchmarkAccountID: benchmarkID,
+		BenchmarkName:      benchmarkName,
 		Status:             model.BenchmarkAnalysisStatusRunning,
 		InputSnapshot:      string(inputSnapshot),
-		CreatedBy:          c.GetUint64("admin_user_id"),
-		UpdatedBy:          c.GetUint64("admin_user_id"),
+		CreatedBy:          operatorID,
+		UpdatedBy:          operatorID,
 	}
 	if err := database.DB.Create(&task).Error; err != nil {
-		basehandler.ServerError(c, "创建分析任务失败")
-		return
+		return task, err
 	}
 
-	output, runErr := benchmarkagent.Agent{}.Run(context.Background(), benchmarkagent.Input{
-		MerchantID: merchant.ID,
-		Industry:   merchant.Industry,
-		City:       merchant.City,
-		BenchmarkAccounts: []benchmarkagent.BenchmarkAccount{
-			{
-				Name:       item.AccountName,
-				PlatformID: item.AccountURL,
-				Reason:     item.Takeaway,
-				Tags:       []string{item.City, item.Industry, item.LatestHitTitle},
-			},
-		},
-		Options: agent.RunOptions{OperatorID: task.CreatedBy, DryRun: true},
-	})
+	output, runErr := benchmarkagent.Agent{}.Run(context.Background(), input)
 	if runErr != nil {
 		task.Status = model.BenchmarkAnalysisStatusFailed
 		task.ErrorMessage = runErr.Error()
@@ -272,14 +329,12 @@ func (h *BenchmarkHandler) Analyze(c *gin.Context) {
 			"error_message": task.ErrorMessage,
 			"updated_by":    task.UpdatedBy,
 		}).Error
-		basehandler.ServerError(c, "对标分析失败")
-		return
+		return task, runErr
 	}
 
 	resultJSON, err := json.Marshal(output)
 	if err != nil {
-		basehandler.ServerError(c, "分析结果序列化失败")
-		return
+		return task, err
 	}
 	task.Status = model.BenchmarkAnalysisStatusCompleted
 	task.ResultJSON = string(resultJSON)
@@ -288,19 +343,21 @@ func (h *BenchmarkHandler) Analyze(c *gin.Context) {
 		"result_json": task.ResultJSON,
 		"updated_by":  task.UpdatedBy,
 	}).Error; err != nil {
-		basehandler.ServerError(c, "保存分析结果失败")
-		return
+		return task, err
 	}
-	_ = database.DB.Model(&item).Updates(map[string]any{
+	ids := make([]uint64, 0, len(accounts))
+	for _, item := range accounts {
+		ids = append(ids, item.ID)
+	}
+	_ = database.DB.Model(&model.BenchmarkAccount{}).Where("id IN ?", ids).Updates(map[string]any{
 		"status":     model.BenchmarkAccountStatusAnalyzed,
 		"updated_by": task.UpdatedBy,
 	}).Error
 
 	if err := database.DB.First(&task, task.ID).Error; err != nil {
-		basehandler.ServerError(c, "读取分析任务失败")
-		return
+		return task, err
 	}
-	basehandler.OK(c, buildBenchmarkAnalysisResponse(task))
+	return task, nil
 }
 
 func (h *BenchmarkHandler) AnalysisList(c *gin.Context) {
@@ -420,6 +477,20 @@ func isValidBenchmarkStatus(status string) bool {
 	default:
 		return false
 	}
+}
+
+func benchmarkIdentity(accounts []model.BenchmarkAccount) (uint64, string) {
+	if len(accounts) == 0 {
+		return 0, ""
+	}
+	if len(accounts) == 1 {
+		return accounts[0].ID, accounts[0].AccountName
+	}
+	names := make([]string, 0, len(accounts))
+	for _, item := range accounts {
+		names = append(names, item.AccountName)
+	}
+	return 0, strings.Join(names, "、")
 }
 
 func buildBenchmarkAnalysisResponses(list []model.BenchmarkAnalysisTask) []benchmarkAnalysisResponse {

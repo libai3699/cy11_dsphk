@@ -14,16 +14,29 @@ const Name = "hotspot_topic"
 type Agent struct{}
 
 type Input struct {
-	MerchantID       uint64           `json:"merchantId"`
-	MerchantName     string           `json:"merchantName"`
-	Industry         string           `json:"industry"`
-	City             string           `json:"city"`
-	Products         []Product        `json:"products,omitempty"`
-	Hotspots         []Hotspot        `json:"hotspots,omitempty"`
-	BenchmarkAccount string           `json:"benchmarkAccount,omitempty"`
-	BenchmarkSummary string           `json:"benchmarkSummary,omitempty"`
-	ExtraRequirement string           `json:"extraRequirement,omitempty"`
-	Options          agent.RunOptions `json:"options,omitempty"`
+	MerchantID        uint64             `json:"merchantId"`
+	MerchantName      string             `json:"merchantName"`
+	Industry          string             `json:"industry"`
+	City              string             `json:"city"`
+	Products          []Product          `json:"products,omitempty"`
+	Hotspots          []Hotspot          `json:"hotspots,omitempty"`
+	BenchmarkAccount  string             `json:"benchmarkAccount,omitempty"`
+	BenchmarkSummary  string             `json:"benchmarkSummary,omitempty"`
+	BenchmarkAccounts []BenchmarkAccount `json:"benchmarkAccounts,omitempty"`
+	ExtraRequirement  string             `json:"extraRequirement,omitempty"`
+	Options           agent.RunOptions   `json:"options,omitempty"`
+}
+
+type BenchmarkAccount struct {
+	Name           string  `json:"name"`
+	Platform       string  `json:"platform,omitempty"`
+	City           string  `json:"city,omitempty"`
+	Industry       string  `json:"industry,omitempty"`
+	FollowerCount  float64 `json:"followerCount,omitempty"`
+	BestPlayCount  float64 `json:"bestPlayCount,omitempty"`
+	LatestHitTitle string  `json:"latestHitTitle,omitempty"`
+	Takeaway       string  `json:"takeaway,omitempty"`
+	Risk           string  `json:"risk,omitempty"`
 }
 
 type Product struct {

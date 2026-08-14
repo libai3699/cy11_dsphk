@@ -371,6 +371,8 @@ func deleteMerchantCascade(merchantID uint64) (map[string]int64, error) {
 			key   string
 			model any
 		}{
+			{key: "settlement_orders", model: &model.SettlementOrder{}},
+			{key: "follow_up_logs", model: &model.MerchantFollowUpLog{}},
 			{key: "content_reviews", model: &model.ContentReviewTask{}},
 			{key: "publish_schedules", model: &model.PublishSchedule{}},
 			{key: "shooting_tasks", model: &model.ShootingTask{}},

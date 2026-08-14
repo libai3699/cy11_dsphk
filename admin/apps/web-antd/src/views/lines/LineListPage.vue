@@ -7,6 +7,7 @@ import { useRoute, useRouter } from 'vue-router';
 
 import {
   analyzeBenchmarkAccount,
+  analyzeBenchmarkAccounts,
   createBenchmarkAccount,
   deleteBenchmarkAccount,
   getBenchmarkAccountList,
@@ -39,6 +40,7 @@ const pagination = reactive({ page: 1, size: 10, total: 0 });
 const list = ref<BenchmarkAccount[]>([]);
 const merchantOptions = ref<Merchant[]>([]);
 const activeAnalysis = ref<BenchmarkAnalysisTask>();
+const selectedRows = ref<BenchmarkAccount[]>([]);
 
 const statusOptions = ['待分析', '已分析', '停用'];
 const platformOptions = ['抖音', '小红书', '视频号', '其他'];
@@ -67,6 +69,15 @@ const currentMerchantName = computed(() => {
   if (routeMerchantName.value) return routeMerchantName.value;
   const current = merchantOptions.value.find((item) => item.id === routeMerchantId.value);
   return current?.name || '';
+});
+const selectedMerchant = computed(() => {
+  if (selectedRows.value.length === 0) return undefined;
+  const first = selectedRows.value[0];
+  if (!first) return undefined;
+  const sameMerchant = selectedRows.value.every(
+    (item) => item.merchantId === first.merchantId,
+  );
+  return sameMerchant ? first : undefined;
 });
 
 const rules = {
@@ -229,6 +240,29 @@ async function analyze(row: BenchmarkAccount) {
   }
 }
 
+async function analyzeSelected() {
+  if (selectedRows.value.length === 0) {
+    ElMessage.warning('请先勾选对标账号');
+    return;
+  }
+  if (!selectedMerchant.value) {
+    ElMessage.warning('一次只能分析同一个商家的对标账号');
+    return;
+  }
+  analyzingId.value = -1;
+  try {
+    activeAnalysis.value = await analyzeBenchmarkAccounts({
+      benchmarkIds: selectedRows.value.map((item) => item.id),
+      merchantId: selectedMerchant.value.merchantId,
+    });
+    resultVisible.value = true;
+    ElMessage.success(`已分析 ${selectedRows.value.length} 个对标账号`);
+    await loadList();
+  } finally {
+    analyzingId.value = null;
+  }
+}
+
 async function removeAccount(row: BenchmarkAccount) {
   await ElMessageBox.confirm(
     `确认删除对标账号「${row.accountName}」？`,
@@ -250,6 +284,32 @@ function goTopics(row: BenchmarkAccount) {
       merchantName: row.merchantName,
     },
   });
+}
+
+function goSelectedTopics() {
+  if (selectedRows.value.length === 0) {
+    ElMessage.warning('请先勾选对标账号');
+    return;
+  }
+  if (!selectedMerchant.value) {
+    ElMessage.warning('一次只能基于同一个商家的对标账号生成选题');
+    return;
+  }
+  router.push({
+    path: '/content/notices',
+    query: {
+      benchmarkAccountIds: selectedRows.value.map((item) => item.id).join(','),
+      benchmarkAccountNames: selectedRows.value
+        .map((item) => item.accountName)
+        .join('、'),
+      merchantId: selectedMerchant.value.merchantId,
+      merchantName: selectedMerchant.value.merchantName,
+    },
+  });
+}
+
+function handleSelectionChange(rows: BenchmarkAccount[]) {
+  selectedRows.value = rows;
 }
 
 function handlePageChange(page: number) {
@@ -292,6 +352,20 @@ onMounted(async () => {
           </div>
           <div class="page-actions">
             <el-button @click="showAll">显示全部</el-button>
+            <el-button
+              :disabled="selectedRows.length === 0"
+              :loading="analyzingId === -1"
+              @click="analyzeSelected"
+            >
+              选中分析
+            </el-button>
+            <el-button
+              :disabled="selectedRows.length === 0"
+              type="success"
+              @click="goSelectedTopics"
+            >
+              选中生成选题
+            </el-button>
             <el-button type="primary" @click="openCreate">新增对标</el-button>
           </div>
         </div>
@@ -337,7 +411,14 @@ onMounted(async () => {
         </el-form-item>
       </el-form>
 
-      <el-table v-loading="loading" :data="list" border stripe>
+      <el-table
+        v-loading="loading"
+        :data="list"
+        border
+        stripe
+        @selection-change="handleSelectionChange"
+      >
+        <el-table-column type="selection" width="48" />
         <el-table-column label="对标账号" min-width="220">
           <template #default="{ row }">
             <div class="account-name">{{ row.accountName }}</div>

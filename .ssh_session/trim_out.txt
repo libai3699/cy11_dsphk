@@ -1,0 +1,24 @@
+﻿rm 2026-08-01.zip
+rm 2026-07-31.zip
+rm 2026-07-30.zip
+rm 2026-07-29.zip
+rm 2026-07-28.zip
+rm 2026-07-27.zip
+rm 2026-07-26.zip
+rm 2026-07-25.zip
+rm 2026-07-24.zip
+rm 2026-07-23.zip
+rm 2026-07-22.zip
+rm 2026-07-21.zip
+total 440M
+drw------- 2 root root 4.0K Aug  4 13:16 .
+drw------- 6 root root 4.0K Mar 26 10:32 ..
+-rw------- 1 root root 146M Aug  2 00:09 2026-08-02.zip
+-rw------- 1 root root 146M Aug  3 00:09 2026-08-03.zip
+-rw------- 1 root root 148M Aug  4 00:09 2026-08-04.zip
+before=82985476096 after=84789223424
+extra_freed_gb=1.68
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/sda1        96G   17G   79G  18% /
+DONE_TRIM
+

@@ -33,6 +33,7 @@ export interface ContentTopicListResult {
 export interface GenerateTopicsPayload {
   merchantId: number;
   benchmarkId?: number;
+  benchmarkIds?: number[];
   benchmarkName?: string;
   cityHotspots?: string[];
   industryHotspots?: string[];

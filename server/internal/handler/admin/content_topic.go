@@ -26,6 +26,7 @@ func NewContentTopicHandler() *ContentTopicHandler {
 type topicGeneratePayload struct {
 	MerchantID       uint64   `json:"merchantId" binding:"required"`
 	BenchmarkID      uint64   `json:"benchmarkId"`
+	BenchmarkIDs     []uint64 `json:"benchmarkIds"`
 	BenchmarkName    string   `json:"benchmarkName"`
 	CityHotspots     []string `json:"cityHotspots"`
 	IndustryHotspots []string `json:"industryHotspots"`
@@ -247,14 +248,11 @@ func buildHotspotTopicTask(payload topicGeneratePayload, operatorID uint64) (mod
 	var packages []model.MerchantPackage
 	_ = database.DB.Where("merchant_id = ? AND status = ?", merchant.ID, model.MerchantPackageStatusEnabled).Find(&packages).Error
 
-	var benchmark model.BenchmarkAccount
-	if payload.BenchmarkID > 0 {
-		_ = database.DB.First(&benchmark, payload.BenchmarkID).Error
+	benchmarks, err := loadTopicBenchmarks(merchant.ID, payload)
+	if err != nil {
+		return model.HotspotTopicTask{}, hotspottopic.Input{}, err
 	}
-	benchmarkName := strings.TrimSpace(payload.BenchmarkName)
-	if benchmarkName == "" {
-		benchmarkName = benchmark.AccountName
-	}
+	benchmarkID, benchmarkName := topicBenchmarkIdentity(benchmarks, payload)
 
 	input := hotspottopic.Input{
 		MerchantID:       merchant.ID,
@@ -262,9 +260,24 @@ func buildHotspotTopicTask(payload topicGeneratePayload, operatorID uint64) (mod
 		Industry:         merchant.Industry,
 		City:             merchant.City,
 		BenchmarkAccount: benchmarkName,
-		BenchmarkSummary: benchmark.Takeaway,
 		ExtraRequirement: strings.TrimSpace(payload.ExtraRequirement),
 		Options:          agent.RunOptions{OperatorID: operatorID, DryRun: true},
+	}
+	if len(benchmarks) == 1 {
+		input.BenchmarkSummary = benchmarks[0].Takeaway
+	}
+	for _, item := range benchmarks {
+		input.BenchmarkAccounts = append(input.BenchmarkAccounts, hotspottopic.BenchmarkAccount{
+			Name:           item.AccountName,
+			Platform:       item.Platform,
+			City:           item.City,
+			Industry:       item.Industry,
+			FollowerCount:  item.FollowerCount,
+			BestPlayCount:  item.BestPlayCount,
+			LatestHitTitle: item.LatestHitTitle,
+			Takeaway:       item.Takeaway,
+			Risk:           item.Risk,
+		})
 	}
 	for _, item := range packages {
 		input.Products = append(input.Products, hotspottopic.Product{
@@ -293,7 +306,7 @@ func buildHotspotTopicTask(payload topicGeneratePayload, operatorID uint64) (mod
 	snapshot := map[string]any{
 		"merchant":       merchant,
 		"packages":       packages,
-		"benchmark":      benchmark,
+		"benchmarks":     benchmarks,
 		"manualInput":    payload,
 		"agentInput":     input,
 		"snapshotTime":   time.Now().Format("2006-01-02 15:04:05"),
@@ -307,13 +320,62 @@ func buildHotspotTopicTask(payload topicGeneratePayload, operatorID uint64) (mod
 	return model.HotspotTopicTask{
 		MerchantID:    merchant.ID,
 		MerchantName:  merchant.Name,
-		BenchmarkID:   benchmark.ID,
+		BenchmarkID:   benchmarkID,
 		BenchmarkName: benchmarkName,
 		Status:        model.HotspotTopicTaskStatusRunning,
 		InputSnapshot: string(inputSnapshot),
 		CreatedBy:     operatorID,
 		UpdatedBy:     operatorID,
 	}, input, nil
+}
+
+func loadTopicBenchmarks(merchantID uint64, payload topicGeneratePayload) ([]model.BenchmarkAccount, error) {
+	ids := make([]uint64, 0, len(payload.BenchmarkIDs)+1)
+	seen := map[uint64]struct{}{}
+	for _, id := range payload.BenchmarkIDs {
+		if id == 0 {
+			continue
+		}
+		if _, ok := seen[id]; ok {
+			continue
+		}
+		seen[id] = struct{}{}
+		ids = append(ids, id)
+	}
+	if payload.BenchmarkID > 0 {
+		if _, ok := seen[payload.BenchmarkID]; !ok {
+			ids = append(ids, payload.BenchmarkID)
+		}
+	}
+	if len(ids) == 0 {
+		return []model.BenchmarkAccount{}, nil
+	}
+
+	var benchmarks []model.BenchmarkAccount
+	if err := database.DB.
+		Where("merchant_id = ? AND id IN ?", merchantID, ids).
+		Order("best_play_count DESC, follower_count DESC, id DESC").
+		Find(&benchmarks).Error; err != nil {
+		return nil, errors.New("读取对标账号失败")
+	}
+	if len(benchmarks) == 0 {
+		return nil, errors.New("所选对标账号不属于当前商家")
+	}
+	return benchmarks, nil
+}
+
+func topicBenchmarkIdentity(benchmarks []model.BenchmarkAccount, payload topicGeneratePayload) (uint64, string) {
+	if len(benchmarks) == 0 {
+		return 0, strings.TrimSpace(payload.BenchmarkName)
+	}
+	if len(benchmarks) == 1 {
+		return benchmarks[0].ID, benchmarks[0].AccountName
+	}
+	names := make([]string, 0, len(benchmarks))
+	for _, item := range benchmarks {
+		names = append(names, item.AccountName)
+	}
+	return 0, strings.Join(names, "、")
 }
 
 func buildContentTopicResponses(list []model.ContentTopic) []contentTopicResponse {

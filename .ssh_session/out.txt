@@ -1,0 +1,45 @@
+######## BEFORE ########
+NAMES                  STATUS                  PORTS
+1Panel-openclaw-B4pX   Up 4 months (healthy)   0.0.0.0:18711->8443/tcp, [::]:18711->8443/tcp
+1Panel-openclaw-Hbkh   Up 4 months (healthy)   0.0.0.0:18710->8443/tcp, [::]:18710->8443/tcp
+1Panel-openclaw-I59V   Up 4 months (healthy)   0.0.0.0:18799->8443/tcp, [::]:18799->8443/tcp
+ubuntu     11192  0.0  0.0   1056   128 ?        Ss   Mar21   7:39 /sbin/docker-init -- /usr/local/bin/docker-entrypoint.sh openclaw gateway --allow-unconfigured
+ubuntu     11244  0.0  0.0   2584  1536 ?        S    Mar21  33:31 /bin/sh /usr/local/bin/docker-entrypoint.sh openclaw gateway --allow-unconfigured
+ubuntu     11246  0.0  0.7 1410268 57636 ?       Sl   Mar21   2:51 openclaw
+ubuntu     11262  0.0  6.4 10486276 528276 ?     Sl   Mar21 103:58 openclaw-gateway
+ubuntu     17221  0.0  0.0   1056     0 ?        Ss   Mar21   7:44 /sbin/docker-init -- /usr/local/bin/docker-entrypoint.sh openclaw gateway --allow-unconfigured
+ubuntu     17272  0.0  0.0   2584  1792 ?        S    Mar21  33:22 /bin/sh /usr/local/bin/docker-entrypoint.sh openclaw gateway --allow-unconfigured
+ubuntu     17274  0.0  0.7 1410268 57588 ?       Sl   Mar21   2:52 openclaw
+ubuntu     17291  0.0  6.4 10486916 525608 ?     Sl   Mar21 105:11 openclaw-gateway
+ubuntu     18261  0.0  0.0   1056   128 ?        Ss   Mar21   7:42 /sbin/docker-init -- /usr/local/bin/docker-entrypoint.sh openclaw gateway --allow-unconfigured
+ubuntu     18314  0.0  0.0   2584  1664 ?        S    Mar21  33:26 /bin/sh /usr/local/bin/docker-entrypoint.sh openclaw gateway --allow-unconfigured
+ubuntu     18316  0.0  0.7 1410536 57660 ?       Sl   Mar21   2:53 openclaw
+ubuntu     18331  0.0  6.4 10480776 527692 ?     Sl   Mar21 110:23 openclaw-gateway
+root       77217  0.2  5.5 22657332 450168 ?     Ssl  Mar21 494:27 openclaw-gateway
+LISTEN 0      4096         0.0.0.0:18799      0.0.0.0:*    users:(("docker-proxy",pid=11225,fd=8))                                                    
+LISTEN 0      4096         0.0.0.0:18711      0.0.0.0:*    users:(("docker-proxy",pid=18293,fd=8))                                                    
+LISTEN 0      4096         0.0.0.0:18710      0.0.0.0:*    users:(("docker-proxy",pid=17252,fd=8))                                                    
+LISTEN 0      511        127.0.0.1:18789      0.0.0.0:*    users:(("openclaw-gatewa",pid=77217,fd=21))                                                
+LISTEN 0      511        127.0.0.1:18791      0.0.0.0:*    users:(("openclaw-gatewa",pid=77217,fd=30))                                                
+LISTEN 0      511        127.0.0.1:18792      0.0.0.0:*    users:(("openclaw-gatewa",pid=77217,fd=31))                                                
+LISTEN 0      4096            [::]:18799         [::]:*    users:(("docker-proxy",pid=11231,fd=8))                                                    
+LISTEN 0      4096            [::]:18711         [::]:*    users:(("docker-proxy",pid=18299,fd=8))                                                    
+LISTEN 0      4096            [::]:18710         [::]:*    users:(("docker-proxy",pid=17258,fd=8))                                                    
+LISTEN 0      511            [::1]:18789         [::]:*    users:(("openclaw-gatewa",pid=77217,fd=23))                                                
+######## STOP_1PANEL_APPS ########
+stop /opt/1panel/apps/openclaw/chatgpt/
+ Container 1Panel-openclaw-I59V Stopping 
+ Container 1Panel-openclaw-I59V Stopped 
+ Container 1Panel-openclaw-I59V Removing 
+ Container 1Panel-openclaw-I59V Removed 
+stop /opt/1panel/apps/openclaw/gemi02/
+ Container 1Panel-openclaw-Hbkh Stopping 
+ Container 1Panel-openclaw-Hbkh Stopped 
+ Container 1Panel-openclaw-Hbkh Removing 
+ Container 1Panel-openclaw-Hbkh Removed 
+stop /opt/1panel/apps/openclaw/gemi03/
+ Container 1Panel-openclaw-B4pX Stopping 
+ Container 1Panel-openclaw-B4pX Stopped 
+ Container 1Panel-openclaw-B4pX Removing 
+ Container 1Panel-openclaw-B4pX Removed 
+######## KILL_HOST_GATEWAY ########

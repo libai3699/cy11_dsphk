@@ -1,0 +1,27 @@
+﻿connected
+
+>>>> docker ps -a --format '{{.ID}} {{.Names}}' | grep -i openclaw || true
+
+>>>> docker ps -aq --filter name=openclaw | xargs -r docker rm -f; docker ps -aq --filter name=1Panel-openclaw | xargs -r doc
+force_done
+
+>>>> pkill -9 -f openclaw-gateway || true; pkill -9 -f 'openclaw gateway' || true; sleep 1; ps auxww | grep -i openclaw | gre
+
+>>>> 
+if [ -d /opt/1panel/apps/openclaw ]; then
+  mv /opt/1panel/apps/openclaw /opt/1panel/apps/openclaw.disabled.$(date +%Y%
+renamed
+
+>>>> ss -lntp | grep -E '18710|18711|18799|18789|18791|18792' || echo ports_closed
+ports_closed
+
+>>>> docker ps -a --format 'table {{.Names}}	{{.Status}}	{{.Ports}}'
+NAMES     STATUS    PORTS
+
+>>>> systemctl is-active dspapi vpnapi; ss -lntp | grep -E ':8989|:8990' || true
+active
+active
+LISTEN 0      4096               *:8989             *:*    users:(("app",pid=2756745,fd=7))                                                           
+LISTEN 0      4096               *:8990             *:*    users:(("app",pid=2756741,fd=3))                                                           
+
+ALL_DONE

@@ -18,10 +18,12 @@ func MigrateAndSeed(cfg config.Config) error {
 		&model.AdminLoginLog{},
 		&model.Merchant{},
 		&model.MerchantPackage{},
+		&model.MerchantFollowUpLog{},
 		&model.MerchantAccountAuth{},
 		&model.AccountDiagnosisTask{},
 		&model.BenchmarkAccount{},
 		&model.BenchmarkAnalysisTask{},
+		&model.PlatformResearchTask{},
 		&model.ContentTopic{},
 		&model.HotspotTopicTask{},
 		&model.ContentScript{},
@@ -29,6 +31,7 @@ func MigrateAndSeed(cfg config.Config) error {
 		&model.ShootingTask{},
 		&model.PublishSchedule{},
 		&model.ContentReviewTask{},
+		&model.SettlementOrder{},
 	); err != nil {
 		return err
 	}
@@ -78,6 +81,7 @@ func seedMenus() error {
 		{ParentName: "PlanMgmt", Menu: model.Menu{Name: "PlanOrdersPage", Path: "/plans/orders", Component: "/plans/PlanOrdersPage", Title: "分成订单", Icon: "carbon:document", SortOrder: 22, Visible: true}},
 		{Menu: model.Menu{Name: "LineMgmt", Path: "/lines", Title: "对标分析", Icon: "carbon:network-4", SortOrder: 3, Visible: true}},
 		{ParentName: "LineMgmt", Menu: model.Menu{Name: "LineListPage", Path: "/lines/list", Component: "/lines/LineListPage", Title: "对标账号库", Icon: "carbon:network-4", SortOrder: 31, Visible: true}},
+		{ParentName: "LineMgmt", Menu: model.Menu{Name: "PlatformResearchPage", Path: "/lines/research", Component: "/lines/PlatformResearchPage", Title: "平台调研", Icon: "carbon:search-locate", SortOrder: 32, Visible: true}},
 		{Menu: model.Menu{Name: "ContentMgmt", Path: "/content", Title: "内容生产", Icon: "carbon:settings", SortOrder: 4, Visible: true}},
 		{ParentName: "ContentMgmt", Menu: model.Menu{Name: "ContentNoticesPage", Path: "/content/notices", Component: "/content/ContentNoticesPage", Title: "选题中心", Icon: "carbon:notification", SortOrder: 41, Visible: true}},
 		{ParentName: "ContentMgmt", Menu: model.Menu{Name: "ContentQuotesPage", Path: "/content/quotes", Component: "/content/ContentQuotesPage", Title: "文案脚本", Icon: "carbon:quotes", SortOrder: 42, Visible: true}},
@@ -129,7 +133,7 @@ func seedRoleMenus() error {
 		"operator": {
 			"WorkspacePage",
 			"UserMgmt", "UserListPage", "MerchantProcessPage", "UserDevicesPage", "AccountDiagnosisPage", "DurationLogPage",
-			"LineMgmt", "LineListPage",
+			"LineMgmt", "LineListPage", "PlatformResearchPage",
 			"ContentMgmt", "ContentNoticesPage", "ContentQuotesPage", "ContentDiscoveriesPage", "ContentPaymentsPage",
 			"LogMgmt", "LogUserPage", "LogAdminPage",
 		},

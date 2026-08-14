@@ -12,6 +12,7 @@ import (
 	"cy11dsphk/server/internal/agent/benchmark"
 	"cy11dsphk/server/internal/agent/copywriting"
 	"cy11dsphk/server/internal/agent/hotspottopic"
+	"cy11dsphk/server/internal/agent/platformresearch"
 	"cy11dsphk/server/internal/agent/provider"
 	"cy11dsphk/server/internal/agent/review"
 	"cy11dsphk/server/internal/agent/storyboard"
@@ -722,6 +723,7 @@ func (h *ContentProductionHandler) AgentConfigs(c *gin.Context) {
 	names := []string{
 		accountdiagnosis.Name,
 		benchmark.Name,
+		platformresearch.Name,
 		hotspottopic.Name,
 		copywriting.Name,
 		storyboard.Name,

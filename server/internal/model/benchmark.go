@@ -40,7 +40,7 @@ type BenchmarkAnalysisTask struct {
 	MerchantID         uint64    `gorm:"index;not null" json:"merchantId"`
 	MerchantName       string    `gorm:"size:128;not null;default:''" json:"merchantName"`
 	BenchmarkAccountID uint64    `gorm:"index;not null" json:"benchmarkAccountId"`
-	BenchmarkName      string    `gorm:"size:128;not null;default:''" json:"benchmarkName"`
+	BenchmarkName      string    `gorm:"size:500;not null;default:''" json:"benchmarkName"`
 	Status             string    `gorm:"size:32;not null;default:'待执行'" json:"status"`
 	InputSnapshot      string    `gorm:"type:text" json:"inputSnapshot"`
 	ResultJSON         string    `gorm:"type:text" json:"resultJson"`

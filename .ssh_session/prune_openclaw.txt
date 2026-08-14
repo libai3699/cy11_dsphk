@@ -1,0 +1,23 @@
+﻿>>>> ps auxww | grep -iE 'openclaw|1Panel-openclaw' | grep -v grep || echo no_proc
+root     2762987 39.3  6.6 22723408 542236 ?     Ssl  13:19   0:06 openclaw-gateway
+>>>> docker images | grep -i openclaw || echo no_image
+1panel/openclaw:2026.3.13   6ca3102957bf       5.25GB         1.41GB        
+
+[stderr]
+WARNING: This output is designed for human readability. For machine-readable output, please use --format.
+>>>> docker image rm -f 1panel/openclaw:2026.3.13 2>&1 || true; docker image prune -f 2>&1 | tail -5
+Untagged: 1panel/openclaw:2026.3.13
+Deleted: sha256:6ca3102957bf44d8bb57d4a753b71556c8c575b93a22a253b2acbf96c2a8595d
+Total reclaimed space: 0B
+>>>> df -h /; docker images; ls -d /opt/1panel/apps/openclaw* 2>/dev/null || true
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/sda1        96G   12G   84G  13% /
+IMAGE   ID             DISK USAGE   CONTENT SIZE   EXTRA
+/opt/1panel/apps/openclaw.disabled.20260804131938
+
+[stderr]
+WARNING: This output is designed for human readability. For machine-readable output, please use --format.
+>>>> ss -lntp | grep -E '18710|18711|18799|18789' || echo ports_still_closed
+LISTEN 0      511        127.0.0.1:18789      0.0.0.0:*    users:(("openclaw-gatewa",pid=2762987,fd=22))                                              
+LISTEN 0      511            [::1]:18789         [::]:*    users:(("openclaw-gatewa",pid=2762987,fd=23))                                              
+DONE

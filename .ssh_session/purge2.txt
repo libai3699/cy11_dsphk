@@ -1,0 +1,57 @@
+﻿>>>> pkill -9 -f openclaw || true; pkill -9 -f clawd || true; echo kill_ok
+
+>>>> npm uninstall -g openclaw; echo npm_exit:$?
+
+up to date in 494ms
+npm_exit:0
+
+>>>> rm -rfv /usr/lib/node_modules/openclaw 2>&1 | tail -5; ls /usr/lib/node_modules/openclaw 2>&1 || ech
+removed '/usr/lib/node_modules/openclaw/node_modules/markdown-it/lib/parser_block.mjs'
+removed directory '/usr/lib/node_modules/openclaw/node_modules/markdown-it/lib'
+removed directory '/usr/lib/node_modules/openclaw/node_modules/markdown-it'
+removed directory '/usr/lib/node_modules/openclaw/node_modules'
+removed directory '/usr/lib/node_modules/openclaw'
+ls: cannot access '/usr/lib/node_modules/openclaw': No such file or directory
+module_gone
+
+>>>> rm -fv /usr/bin/openclaw /usr/local/bin/openclaw /usr/bin/clawd /usr/local/bin/clawd; ls -l /usr/bin
+removed '/usr/bin/openclaw'
+ls: cannot access '/usr/bin/openclaw': No such file or directory
+bin_gone
+
+>>>> rm -rfv /root/.openclaw 2>&1 | tail -3; ls /root/.openclaw 2>&1 || echo root_cfg_gone
+removed '/root/.openclaw/canvas/index.html'
+removed directory '/root/.openclaw/canvas'
+removed directory '/root/.openclaw'
+ls: cannot access '/root/.openclaw': No such file or directory
+root_cfg_gone
+
+>>>> rm -rfv /tmp/openclaw 2>&1 | tail -3; rm -rf /opt/1panel/apps/openclaw.disabled.20260804131938 /opt/
+removed '/tmp/openclaw/openclaw-2026-08-04.log'
+removed directory '/tmp/openclaw'
+ls: cannot access '/opt/1panel/apps/openclaw*': No such file or directory
+apps_gone
+
+>>>> rm -fv /root/.config/systemd/user/openclaw-gateway.service /root/.config/systemd/user/default.target
+svc_rm_ok
+
+>>>> echo '===VERIFY==='; ps auxww | grep -iE 'openclaw|clawd' | grep -v grep || echo no_proc; which open
+===VERIFY===
+no_proc
+no_bin
+ls: cannot access '/usr/lib/node_modules/openclaw': No such file or directory
+no_module
+ls: cannot access '/root/.openclaw': No such file or directory
+ls: cannot access '/opt/1panel/apps/openclaw*': No such file or directory
+ls: cannot access '/tmp/openclaw': No such file or directory
+no_dirs
+/opt/1panel/resource/apps/remote/openclaw
+/opt/1panel/resource/apps/remote/openclaw/2026.3.13/scripts/openclaw-setup-linux-arm64
+/opt/1panel/resource/apps/remote/openclaw/2026.3.13/scripts/openclaw-setup-linux-amd64
+/opt/1panel/resource/icon/app_openclaw.png
+/tmp/jiti/plugin-sdk-tmp-openclaw-dir-DEAexD45.0867fa79.cjs
+/tmp/openclaw-0
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/sda1        96G   12G   85G  12% /
+
+DONE

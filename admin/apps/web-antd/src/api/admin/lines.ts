@@ -104,6 +104,16 @@ export function analyzeBenchmarkAccount(id: number) {
   return requestClient.post<BenchmarkAnalysisTask>(`/benchmarks/${id}/analyze`);
 }
 
+export function analyzeBenchmarkAccounts(data: {
+  benchmarkIds?: number[];
+  merchantId: number;
+}) {
+  return requestClient.post<BenchmarkAnalysisTask>(
+    '/benchmarks/analyze-batch',
+    data,
+  );
+}
+
 export function getBenchmarkAnalysisList(params: {
   benchmarkAccountId?: number;
   merchantId?: number;

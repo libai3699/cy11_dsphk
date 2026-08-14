@@ -28,6 +28,7 @@ const statusFilter = ref('');
 const routeMerchantId = ref<number | undefined>();
 const routeMerchantName = ref('');
 const routeBenchmarkId = ref<number | undefined>();
+const routeBenchmarkIds = ref<number[]>([]);
 const routeBenchmarkName = ref('');
 const pagination = reactive({ page: 1, size: 10, total: 0 });
 const list = ref<ContentTopic[]>([]);
@@ -38,6 +39,7 @@ const statusOptions = ['待确认', '已采用', '停用'];
 
 const form = reactive<GenerateTopicsPayload>({
   benchmarkId: undefined,
+  benchmarkIds: [],
   benchmarkName: '',
   cityHotspots: [],
   extraRequirement: '',
@@ -55,17 +57,34 @@ const currentMerchantName = computed(() => {
   const current = merchantOptions.value.find((item) => item.id === routeMerchantId.value);
   return current?.name || '';
 });
+const selectedBenchmarkNames = computed(() => {
+  if (routeBenchmarkName.value) return routeBenchmarkName.value;
+  const names = benchmarkOptions.value
+    .filter((item) => form.benchmarkIds?.includes(item.id))
+    .map((item) => item.accountName);
+  return names.join('、');
+});
 
 function applyRouteQuery() {
   const rawMerchantId = Number(route.query.merchantId || 0);
   const rawBenchmarkId = Number(route.query.benchmarkAccountId || route.query.benchmarkId || 0);
+  const rawBenchmarkIds = String(route.query.benchmarkAccountIds || route.query.benchmarkIds || '')
+    .split(',')
+    .map((item) => Number(item))
+    .filter((item) => item > 0);
   routeMerchantId.value = rawMerchantId > 0 ? rawMerchantId : undefined;
   routeMerchantName.value = String(route.query.merchantName || '');
   routeBenchmarkId.value = rawBenchmarkId > 0 ? rawBenchmarkId : undefined;
-  routeBenchmarkName.value = String(route.query.benchmarkAccountName || route.query.benchmarkName || '');
+  routeBenchmarkIds.value = rawBenchmarkIds.length
+    ? rawBenchmarkIds
+    : routeBenchmarkId.value
+      ? [routeBenchmarkId.value]
+      : [];
+  routeBenchmarkName.value = String(route.query.benchmarkAccountNames || route.query.benchmarkAccountName || route.query.benchmarkName || '');
   keyword.value = routeMerchantName.value;
   form.merchantId = routeMerchantId.value || 0;
   form.benchmarkId = routeBenchmarkId.value;
+  form.benchmarkIds = routeBenchmarkIds.value;
   form.benchmarkName = routeBenchmarkName.value;
 }
 
@@ -134,6 +153,7 @@ function showAll() {
 async function openGenerate() {
   form.merchantId = routeMerchantId.value || form.merchantId || 0;
   form.benchmarkId = routeBenchmarkId.value;
+  form.benchmarkIds = routeBenchmarkIds.value;
   form.benchmarkName = routeBenchmarkName.value;
   await loadBenchmarks();
   dialogVisible.value = true;
@@ -147,12 +167,14 @@ async function submitGenerate() {
   }
   generating.value = true;
   try {
-    const selectedBenchmark = benchmarkOptions.value.find(
-      (item) => item.id === form.benchmarkId,
-    );
+    const selectedBenchmarkNames = benchmarkOptions.value
+      .filter((item) => form.benchmarkIds?.includes(item.id))
+      .map((item) => item.accountName)
+      .join('、');
     const result = await generateContentTopics({
-      benchmarkId: form.benchmarkId,
-      benchmarkName: selectedBenchmark?.accountName || form.benchmarkName,
+      benchmarkId: form.benchmarkIds?.[0] || form.benchmarkId,
+      benchmarkIds: form.benchmarkIds,
+      benchmarkName: selectedBenchmarkNames || form.benchmarkName,
       cityHotspots: splitLines(cityHotspotsText.value),
       extraRequirement: form.extraRequirement,
       industryHotspots: splitLines(industryHotspotsText.value),
@@ -259,13 +281,13 @@ onMounted(async () => {
       </template>
 
       <el-alert
-        v-if="currentMerchantName || routeBenchmarkName"
+        v-if="currentMerchantName || selectedBenchmarkNames"
         class="mb-4"
         type="info"
         :closable="false"
         show-icon
       >
-        当前处理商家：{{ currentMerchantName || '-' }}。参考对标账号：{{ routeBenchmarkName || '-' }}。
+        当前处理商家：{{ currentMerchantName || '-' }}。参考对标账号：{{ selectedBenchmarkNames || '-' }}。
       </el-alert>
 
       <el-form :inline="true" class="search-form">
@@ -375,10 +397,13 @@ onMounted(async () => {
           <el-col :span="12">
             <el-form-item label="参考对标">
               <el-select
-                v-model="form.benchmarkId"
+                v-model="form.benchmarkIds"
                 clearable
                 filterable
-                placeholder="可选，建议先选已分析对标"
+                multiple
+                collapse-tags
+                collapse-tags-tooltip
+                placeholder="可多选，建议选 5-10 个已分析对标"
                 style="width: 100%"
               >
                 <el-option
@@ -388,6 +413,9 @@ onMounted(async () => {
                   :value="item.id"
                 />
               </el-select>
+              <div class="form-tip">
+                已选：{{ selectedBenchmarkNames || '未选择，Agent 将只根据商家、套餐和热点保守生成' }}
+              </div>
             </el-form-item>
           </el-col>
           <el-col :span="24">
@@ -492,5 +520,12 @@ onMounted(async () => {
   display: flex;
   justify-content: flex-end;
   margin-top: 16px;
+}
+
+.form-tip {
+  margin-top: 6px;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.5;
 }
 </style>

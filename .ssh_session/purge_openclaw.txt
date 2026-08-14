@@ -1,0 +1,59 @@
+﻿connected
+
+>>>> 
+set +e
+# 再确保进程死透
+export XDG_RUNTIME_DIR=/run/user/0
+export DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/0/bus
+systemctl --user disable --now openclaw-gateway.s
+
+>>>> ps auxww | grep -iE 'openclaw|clawd|lobster' | grep -v grep || echo no_proc
+no_proc
+
+>>>> which openclaw clawd 2>/dev/null || echo no_bin
+/usr/bin/openclaw
+no_bin
+
+>>>> ls /usr/lib/node_modules/ 2>/dev/null | grep -iE 'openclaw|clawd|lobster' || echo no_module
+openclaw
+
+>>>> ls -d /root/.openclaw /opt/1panel/apps/openclaw* /tmp/openclaw 2>/dev/null || echo no_dirs
+/opt/1panel/apps/openclaw.disabled.20260804131938
+/root/.openclaw
+/tmp/openclaw
+
+>>>> find /opt /root /usr/lib/node_modules /usr/bin /usr/local/bin -maxdepth 3 -iname '*openclaw*' -o -iname '*clawd*' 2>/dev/null | head -20 || true
+/opt/1panel/apps/openclaw.disabled.20260804131938
+/root/.openclaw
+/root/.openclaw/openclaw.json.bak.3
+/root/.openclaw/openclaw.json.bak
+/root/.openclaw/openclaw.json.bak.4
+/root/.openclaw/openclaw.json.bak.2
+/root/.openclaw/openclaw.json.bak.1
+/root/.openclaw/workspace/.openclaw
+/root/.openclaw/openclaw.json
+/root/.openclaw/completions/openclaw.zsh
+/root/.openclaw/completions/openclaw.fish
+/root/.openclaw/completions/openclaw.ps1
+/root/.openclaw/completions/openclaw.bash
+/usr/lib/node_modules/openclaw
+/usr/lib/node_modules/openclaw/docs/whatsapp-openclaw.jpg
+/usr/lib/node_modules/openclaw/docs/whatsapp-openclaw-ai-zh.jpg
+/usr/lib/node_modules/openclaw/openclaw.mjs
+/usr/lib/node_modules/openclaw/dist/openclaw-root-CbcBJZgO.js
+/usr/lib/node_modules/openclaw/dist/openclaw-root-3m-COvjr.js
+/usr/lib/node_modules/openclaw/dist/openclaw-exec-env-BIs3Hzjh.js
+
+>>>> ss -lntp | grep -E '18789|18710|18711|18799|18791|18792' || echo ports_closed
+ports_closed
+
+>>>> df -h /; systemctl is-active 1panel-core 1panel-agent dspapi vpnapi; docker ps -a
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/sda1        96G   12G   84G  13% /
+active
+active
+active
+active
+CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES
+
+ALL_PURGED
