@@ -1,0 +1,78 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://zaotai.local/schemas/a7.output.json",
+  "title": "A7 漏斗医生 · 输出契约（artifactType: funnel.diagnosis）",
+  "description": "跨工单契约：WO-033 的 mock fixture 与 WO-021 Runner 校验共用本形状，字段名不得增删。benchmark 为「待补充」或健康参考值字符串，mock 档无基准表故全为「待补充」；expectedLift 必须为区间字符串。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["period", "funnel", "bottleneck", "actions", "watchlist"],
+  "properties": {
+    "period": {
+      "type": "string",
+      "minLength": 1,
+      "description": "与输入周期一致，如 2026-07-28 至 2026-08-03"
+    },
+    "funnel": {
+      "type": "array",
+      "minItems": 4,
+      "description": "漏斗各阶段数据，按播放→完播→点击→成交→核销顺序，至少覆盖四个阶段",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["stage", "value", "rate", "benchmark", "health"],
+        "properties": {
+          "stage": { "type": "string", "minLength": 1, "description": "阶段名，如 播放 / 5秒完播率 / 团购点击 / 成交 / 核销" },
+          "value": { "type": "number", "minimum": 0, "description": "该阶段绝对量，仅引用输入原值" },
+          "rate": { "type": "number", "minimum": 0, "maximum": 100, "description": "该阶段到下一阶段的转化率（百分比）；首阶段可为 100" },
+          "benchmark": {
+            "type": "string",
+            "description": "健康参考值。mock 档无基准表，必须为「待补充」，不得自创数值"
+          },
+          "health": {
+            "type": "string",
+            "enum": ["高", "中", "低"],
+            "description": "健康度判断，仅基于本期数据相对表现，不依赖自创基准"
+          }
+        }
+      }
+    },
+    "bottleneck": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["stage", "severity", "evidence"],
+      "description": "瓶颈环节定位，stage 必须能在 funnel 中找到同名阶段",
+      "properties": {
+        "stage": { "type": "string", "minLength": 1, "description": "瓶颈阶段名，与 funnel[].stage 对应" },
+        "severity": { "type": "string", "enum": ["高", "中", "低"], "description": "瓶颈严重程度" },
+        "evidence": { "type": "string", "minLength": 1, "description": "判定依据，必须引用输入数据中的具体数值或阶段间落差" }
+      }
+    },
+    "actions": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 3,
+      "description": "最多 3 条一周内可执行动作，按优先级从高到低排列",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["action", "targetStage", "expectedLift", "effort", "owner"],
+        "properties": {
+          "action": { "type": "string", "minLength": 1, "description": "具体动作，必须一周内可执行，不得包含档案外的价格/套餐" },
+          "targetStage": { "type": "string", "minLength": 1, "description": "动作针对的漏斗阶段" },
+          "expectedLift": {
+            "type": "string",
+            "minLength": 1,
+            "description": "预期提升量，必须是区间格式（如 5%-10% / 3%~8%），不得给单点值"
+          },
+          "effort": { "type": "string", "minLength": 1, "description": "投入量级，如 低/中/高 或具体人时" },
+          "owner": { "type": "string", "minLength": 1, "description": "责任角色，如 运营 / 店长" }
+        }
+      }
+    },
+    "watchlist": {
+      "type": "array",
+      "description": "需持续观察的指标或风险点，可为空数组",
+      "items": { "type": "string", "minLength": 1 }
+    }
+  }
+}

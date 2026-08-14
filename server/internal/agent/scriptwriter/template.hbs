@@ -1,0 +1,45 @@
+# 脚本包 · {{topicRef}}
+
+## 一、口播脚本
+
+**开场钩子**：{{oral.hook}}
+
+**正文段落**：
+{{#each oral.body}}- {{this}}
+{{/each}}
+
+**行动号召**：{{oral.cta}}
+
+> 口播共 {{oral.wordCount}} 字，按 ≈4.5 字/秒 折算预计 {{oral.estDurationSec}} 秒。
+
+## 二、分镜表
+
+| 镜头 | 时间 | 画面 | 口播 | 屏幕文字 | 备注 |
+|------|------|------|------|----------|------|
+{{#each storyboard}}| {{shotNo}} | {{timeRange}} | {{visual}} | {{voiceover}} | {{onScreenText}} | {{note}} |
+{{/each}}
+
+## 三、备选标题（3 选 1）
+
+{{#each titles}}- {{this}}
+{{/each}}
+
+## 四、话题标签
+
+{{#each hashtags}}#{{this}} {{/each}}
+
+## 五、首评
+
+{{firstComment}}
+
+## 六、合规说明
+
+{{#each complianceNotes}}- {{this}}
+{{/each}}
+
+{{#if warnings}}
+## ⚠️ 提示
+
+{{#each warnings}}- {{this}}
+{{/each}}
+{{/if}}

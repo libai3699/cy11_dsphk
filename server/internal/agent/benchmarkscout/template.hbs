@@ -1,0 +1,40 @@
+# 对标报告 · {{summary}}
+
+## 一、推荐对标账号
+
+| 账号 | 匹配分 | 档位 | 依据 |
+|------|--------|------|------|
+{{#each recommended}}| {{account}} | {{matchScore}}/100 | {{tier}} | {{reason}} |
+{{/each}}
+
+## 二、内容类别分布
+
+| 类别 | 占比 | 代表内容 |
+|------|------|----------|
+{{#each contentCategories}}| {{name}} | {{share}}% | {{examples}} |
+{{/each}}
+
+## 三、发布规律
+
+- **发布频率**：{{postingPattern.frequency}}
+- **常见时段**：{{postingPattern.timeSlots}}
+- **形式配比**：{{postingPattern.formatMix}}
+
+## 四、可借鉴点
+
+| 可借鉴点 | 证据 | 本店适用性 |
+|----------|------|-----------|
+{{#each borrowables}}| {{point}} | {{evidence}} | {{applicability}} |
+{{/each}}
+
+## 五、差距与不确定项
+
+{{#each gaps}}- {{this}}
+{{/each}}
+
+{{#if warnings}}
+## ⚠️ 提示
+
+{{#each warnings}}- {{this}}
+{{/each}}
+{{/if}}

@@ -1,0 +1,108 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://zaotai.local/schemas/a1.output.json",
+  "title": "A1 对标猎手 · 输出契约（artifactType: benchmark.report）",
+  "description": "跨工单契约：WO-026 的 mock fixture 与 WO-021 Runner 校验共用本形状，字段名不得增删。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "summary",
+    "recommended",
+    "contentCategories",
+    "postingPattern",
+    "borrowables",
+    "gaps"
+  ],
+  "properties": {
+    "summary": {
+      "type": "string",
+      "minLength": 1,
+      "description": "一句话总述。上下文装配裁剪下游 Agent 时只保留本字段"
+    },
+    "recommended": {
+      "type": "array",
+      "minItems": 3,
+      "description": "推荐对标账号，按对标价值从高到低排列",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["account", "matchScore", "reason", "tier"],
+        "properties": {
+          "account": { "type": "string", "minLength": 1, "description": "账号名" },
+          "matchScore": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100,
+            "description": "与门店的对标匹配度评分 0–100"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 10,
+            "description": "可核对的对标依据，至少覆盖品类/客单价/目标顾客/门店阶段/招牌菜中的三项"
+          },
+          "tier": {
+            "type": "string",
+            "enum": ["S", "A", "B", "C"],
+            "description": "对标档位：S 高度可对标 / A 值得深挖 / B 部分可借 / C 暂缓"
+          }
+        }
+      }
+    },
+    "contentCategories": {
+      "type": "array",
+      "minItems": 2,
+      "description": "对标账号的内容类别归纳",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "share", "examples"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1, "description": "内容类别名，需能直接指导本店做内容" },
+          "share": { "type": "number", "minimum": 0, "maximum": 100, "description": "该类占对标账号内容大盘的估算比例 0–100" },
+          "examples": {
+            "type": "array",
+            "minItems": 1,
+            "description": "该类下的具体内容示例，须来自输入素材",
+            "items": { "type": "string", "minLength": 1 }
+          }
+        }
+      }
+    },
+    "postingPattern": {
+      "type": "object",
+      "description": "对标账号的发布规律，必须能从输入素材读出",
+      "additionalProperties": false,
+      "required": ["frequency", "timeSlots", "formatMix"],
+      "properties": {
+        "frequency": { "type": "string", "minLength": 1, "description": "发布频率，如 每周 4–5 条" },
+        "timeSlots": {
+          "type": "array",
+          "minItems": 1,
+          "description": "常见发布时段，如 午间 11:30–13:00",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "formatMix": { "type": "string", "minLength": 1, "description": "内容形式配比，如 口播探店 6 成、后厨实拍 3 成" }
+      }
+    },
+    "borrowables": {
+      "type": "array",
+      "minItems": 2,
+      "description": "本店可直接借鉴的做法。每项 evidence 必须能回溯到输入素材或门店档案",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["point", "evidence", "applicability"],
+        "properties": {
+          "point": { "type": "string", "minLength": 1, "description": "借鉴什么具体做法" },
+          "evidence": { "type": "string", "minLength": 1, "description": "素材里看到该做法的证据" },
+          "applicability": { "type": "string", "minLength": 1, "description": "对本店是否适用及原因" }
+        }
+      }
+    },
+    "gaps": {
+      "type": "array",
+      "description": "差距与不确定项。样本不足或置信度低时在此声明",
+      "items": { "type": "string", "minLength": 1 }
+    }
+  }
+}

@@ -1,0 +1,93 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://zaotai.local/schemas/a2.output.json",
+  "title": "A2 热点雷达 · 输出契约（artifactType: hotspot.digest）",
+  "description": "跨工单契约：WO-027 的 mock fixture 与通用 Runner 校验共用本形状，字段名不得增删。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["summary", "items", "topPicks", "discarded"],
+  "properties": {
+    "summary": {
+      "type": "string",
+      "minLength": 1,
+      "description": "一句话总述本批热点的整体形态，如「本批 4 条热点中 2 条本地可跟进」。上下文装配裁剪下游 Agent 时只保留本字段"
+    },
+    "items": {
+      "type": "array",
+      "minItems": 3,
+      "description": "通过时效与相关度筛选后保留的热点清单。每条必须带 expiresAt",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["title", "category", "heatLevel", "localRelevance", "decayEstimate", "expiresAt", "sourceRef"],
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "description": "热点标题，归一化后的可读文本"
+          },
+          "category": {
+            "type": "string",
+            "minLength": 1,
+            "description": "热点分类，如 话题热度 / 品类热度 / 本地攻略"
+          },
+          "heatLevel": {
+            "type": "string",
+            "enum": ["高", "中", "低"],
+            "description": "热度等级，只允许三档"
+          },
+          "localRelevance": {
+            "type": "string",
+            "minLength": 1,
+            "description": "本地相关度说明。必须写明与门店所在城市/品类的关联路径，不得只写「相关」"
+          },
+          "decayEstimate": {
+            "type": "string",
+            "minLength": 1,
+            "description": "时效衰减预估，如 3-5 天内衰减 / 日常复现型不衰"
+          },
+          "expiresAt": {
+            "type": "string",
+            "minLength": 1,
+            "description": "过期时间，ISO 日期。无法判断时效的热点不得出现在本数组"
+          },
+          "sourceRef": {
+            "type": "string",
+            "minLength": 1,
+            "description": "来源引用，对应输入的 source 或 rawItems 序号，如 抖音热搜 / 粘贴#2"
+          }
+        }
+      }
+    },
+    "topPicks": {
+      "type": "array",
+      "minItems": 1,
+      "description": "最值得优先跟进的热点标题，必须是 items 中 title 的逐字副本",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "discarded": {
+      "type": "array",
+      "description": "已剔除的热点（可空数组）。每条写明原文与剔除原因",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["item", "reason"],
+        "properties": {
+          "item": {
+            "type": "string",
+            "minLength": 1,
+            "description": "被剔除的原始内容（或归一化描述）"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "description": "剔除原因，如 无法判断时效 / 纯广告 / 与本店无关"
+          }
+        }
+      }
+    }
+  }
+}

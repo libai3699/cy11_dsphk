@@ -9,6 +9,7 @@ export * from './notices';
 export * from './platform-research';
 export * from './configs';
 export * from './content-production';
+export * from './knowledge';
 export * from './lines';
 export * from './logs';
 export * from './merchants';

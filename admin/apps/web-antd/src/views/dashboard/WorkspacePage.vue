@@ -5,6 +5,8 @@ import { useRouter } from 'vue-router';
 
 import {
   getContentReviews,
+  getContentScripts,
+  getContentStoryboards,
   getContentTopicList,
   getMerchantList,
   getMerchantPackageList,
@@ -282,7 +284,100 @@ function formatTime(value?: string) {
   return value.replace('T', ' ').slice(0, 16);
 }
 
-onMounted(loadOverview);
+interface PipelineStageRow {
+  key: string;
+  label: string;
+  path: string;
+  total: number;
+  statusCounts: Record<string, number>;
+}
+
+const pipelineLoading = ref(false);
+const pipelineStages = ref<PipelineStageRow[]>([]);
+
+/** 各阶段状态 → 条状颜色（与业务页状态语义一致） */
+const PIPELINE_STATUS_COLOR: Record<string, string> = {
+  待确认: '#909399',
+  已采用: '#67c23a',
+  停用: '#f56c6c',
+  草稿: '#909399',
+  已确认: '#409eff',
+  待拍摄: '#e6a23c',
+  拍摄中: '#409eff',
+  已拍摄: '#67c23a',
+  已剪辑: '#95d475',
+  已完成: '#67c23a',
+  待发布: '#e6a23c',
+  已发布: '#409eff',
+  已复盘: '#909399',
+  失败: '#f56c6c',
+};
+
+function buildPipelineStage(
+  key: string,
+  label: string,
+  path: string,
+  result: { list?: { status?: string }[]; total?: number },
+): PipelineStageRow {
+  const statusCounts: Record<string, number> = {};
+  (result.list || []).forEach((item) => {
+    const status = item.status || '未知';
+    statusCounts[status] = (statusCounts[status] || 0) + 1;
+  });
+  return { key, label, path, total: Number(result.total) || 0, statusCounts };
+}
+
+/** 独立加载管线漏斗，失败仅静默降级，不阻断页面其他区块 */
+async function loadPipelineFunnel() {
+  pipelineLoading.value = true;
+  try {
+    const [topics, scripts, storyboards, shooting, schedules, reviews] =
+      await Promise.all([
+        getContentTopicList({ page: 1, size: 1000 }),
+        getContentScripts({ page: 1, size: 1000 }),
+        getContentStoryboards({ page: 1, size: 1000 }),
+        getShootingTasks({ page: 1, size: 1000 }),
+        getPublishSchedules({ page: 1, size: 1000 }),
+        getContentReviews({ page: 1, size: 1000 }),
+      ]);
+    pipelineStages.value = [
+      buildPipelineStage('topics', '选题', '/content/notices', topics),
+      buildPipelineStage('scripts', '脚本', '/content/quotes', scripts),
+      buildPipelineStage('storyboards', '分镜', '/content/discoveries', storyboards),
+      buildPipelineStage('shooting', '拍摄', '/logs/user', shooting),
+      buildPipelineStage('schedules', '排期', '/content/payments', schedules),
+      buildPipelineStage('reviews', '复盘', '/logs/admin', reviews),
+    ];
+  } catch (error) {
+    // 管线数据拉取失败时保持空数组，页面其余区块不受影响
+    console.warn('[WorkspacePage] 加载内容管线漏斗失败', error);
+  } finally {
+    pipelineLoading.value = false;
+  }
+}
+
+/** 以最大阶段为 100%，条形宽度体现漏斗收敛 */
+function funnelWidthPct(total: number) {
+  const max = Math.max(1, ...pipelineStages.value.map((s) => s.total));
+  return `${Math.max(4, Math.round((total / max) * 100))}%`;
+}
+
+/** 与上一阶段对比的收敛/扩张提示 */
+function stageDropText(index: number) {
+  const prev = pipelineStages.value[index - 1]?.total;
+  const current = pipelineStages.value[index]?.total;
+  if (prev === undefined || prev <= 0) return '';
+  const diff = prev - current;
+  const pct = Math.round((diff / prev) * 100);
+  if (pct > 0) return `较上阶段 ↓ ${pct}%`;
+  if (pct < 0) return `较上阶段 ↑ ${Math.abs(pct)}%`;
+  return '较上阶段持平';
+}
+
+onMounted(() => {
+  loadOverview();
+  loadPipelineFunnel();
+});
 </script>
 
 <template>
@@ -334,6 +429,46 @@ onMounted(loadOverview);
           {{ index + 1 }}. {{ step.label }}
         </el-button>
       </div>
+    </el-card>
+
+    <el-card v-loading="pipelineLoading" shadow="never">
+      <template #header>
+        <div class="card-header">
+          <span>内容管线漏斗</span>
+          <el-tag type="info">选题 → 复盘 · 条形宽度反映各阶段存量收敛</el-tag>
+        </div>
+      </template>
+      <div v-if="pipelineStages.length" class="funnel-list">
+        <div v-for="(stage, index) in pipelineStages" :key="stage.key" class="funnel-row">
+          <div class="funnel-head">
+            <span class="funnel-index">{{ index + 1 }}</span>
+            <span class="funnel-label">{{ stage.label }}</span>
+            <span class="funnel-total">{{ stage.total }}</span>
+            <span v-if="stageDropText(index)" class="funnel-drop">{{ stageDropText(index) }}</span>
+          </div>
+          <div class="funnel-track">
+            <div
+              class="funnel-bar"
+              :style="{ width: funnelWidthPct(stage.total) }"
+              @click="router.push(stage.path)"
+            />
+          </div>
+          <div class="funnel-status">
+            <span
+              v-for="(count, status) in stage.statusCounts"
+              :key="status"
+              class="funnel-chip"
+              :style="{ color: PIPELINE_STATUS_COLOR[status] || '#64748b' }"
+            >
+              {{ status }} {{ count }}
+            </span>
+            <span v-if="Object.keys(stage.statusCounts).length === 0" class="funnel-chip">
+              暂无细分
+            </span>
+          </div>
+        </div>
+      </div>
+      <el-empty v-else description="暂无管线数据" />
     </el-card>
 
     <el-row :gutter="16" class="workspace-row">
@@ -605,6 +740,102 @@ onMounted(loadOverview);
 
 .todo-button {
   margin-top: 10px;
+}
+
+.funnel-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.funnel-row {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  column-gap: 18px;
+  align-items: center;
+}
+
+.funnel-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.funnel-index {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  flex: none;
+  border-radius: 50%;
+  background: #eff3ff;
+  color: #2563eb;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.funnel-label {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.funnel-total {
+  min-width: 34px;
+  padding: 1px 9px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.funnel-drop {
+  color: #94a3b8;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.funnel-track {
+  position: relative;
+  height: 18px;
+  border-radius: 6px;
+  background: #f1f5f9;
+  overflow: hidden;
+}
+
+.funnel-bar {
+  height: 100%;
+  min-width: 8px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #60a5fa, #2563eb);
+  cursor: pointer;
+  transition: width 0.4s ease;
+}
+
+.funnel-status {
+  grid-column: 2;
+  margin-top: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+}
+
+.funnel-chip {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .funnel-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .funnel-status {
+    grid-column: 1;
+  }
 }
 
 @media (max-width: 1200px) {

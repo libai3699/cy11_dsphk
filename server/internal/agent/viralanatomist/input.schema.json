@@ -1,0 +1,48 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://zaotai.local/schemas/a3.input.json",
+  "title": "A3 爆款解剖师 · 输入契约",
+  "description": "单条已爆短视频的原始素材与投放数据。缺必填字段时 Runner 直接拒绝执行，不靠模型兜底。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["clientId", "transcript", "metrics", "publishedAt"],
+  "properties": {
+    "clientId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "门店档案目录名，用于装配 L2 档案层，如 xiangcaiguan"
+    },
+    "videoUrl": {
+      "type": "string",
+      "format": "uri",
+      "description": "可选。原视频链接，仅作溯源引用，不参与分析"
+    },
+    "transcript": {
+      "type": "string",
+      "minLength": 50,
+      "description": "视频逐字稿。少于 50 字拆不出结构分段，直接拒绝执行"
+    },
+    "metrics": {
+      "type": "object",
+      "description": "投放数据原值。所有数字只能被引用，禁止推算",
+      "additionalProperties": false,
+      "required": ["views", "likes", "comments", "shares", "collects"],
+      "properties": {
+        "views": { "type": "integer", "minimum": 0, "description": "播放量" },
+        "likes": { "type": "integer", "minimum": 0, "description": "点赞数" },
+        "comments": { "type": "integer", "minimum": 0, "description": "评论数" },
+        "shares": { "type": "integer", "minimum": 0, "description": "转发数" },
+        "collects": { "type": "integer", "minimum": 0, "description": "收藏数" }
+      }
+    },
+    "productHook": {
+      "type": "string",
+      "description": "可选。视频中挂载的团购/product 钩子描述，用于判断转化路径"
+    },
+    "publishedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "发布时间，ISO 8601。用于判断热点时效"
+    }
+  }
+}

@@ -1,0 +1,30 @@
+# 发布排期 · {{range}}
+
+## 一、逐条排期
+
+| 日期 | 时段 | 脚本 | 类型 | 理由 |
+|------|------|------|------|------|
+{{#each slots}}| {{date}} | {{timeSlot}} | {{scriptRef}} | {{contentType}} | {{rationale}} |
+{{/each}}
+
+## 二、周节奏
+
+- **每周条数**：{{weeklyRhythm.postsPerWeek}}
+- **支柱轮换**：{{weeklyRhythm.pillarSequence}}
+
+## 三、缓冲档期
+
+{{#each bufferSlots}}- {{this}}
+{{/each}}
+
+## 四、风险与对策
+
+{{#each risks}}- **{{risk}}**：{{mitigation}}
+{{/each}}
+
+{{#if warnings}}
+## ⚠️ 提示
+
+{{#each warnings}}- {{this}}
+{{/each}}
+{{/if}}

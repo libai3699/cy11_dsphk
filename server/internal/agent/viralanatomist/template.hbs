@@ -1,0 +1,41 @@
+# 爆款拆解 · {{summary}}
+
+## 一、结构分段
+
+| 段落 | 时间 | 目的 | 手法 |
+|------|------|------|------|
+{{#each structure}}| {{segment}} | {{startSec}}s – {{endSec}}s | {{purpose}} | {{technique}} |
+{{/each}}
+
+## 二、钩子分析
+
+- **钩子类型**：{{hookAnalysis.type}}
+- **前 3 秒**：{{hookAnalysis.first3sec}}
+- **留人驱动力**：{{hookAnalysis.retentionDriver}}
+
+## 三、爆因归因
+
+| 因子 | 权重 | 证据（逐字稿原句） |
+|------|------|--------------------|
+{{#each viralFactors}}| {{factor}} | {{weight}} | {{evidence}} |
+{{/each}}
+
+## 四、可复制性
+
+**评分：{{replicability.score}} / 100**
+
+{{replicability.reason}}
+
+## 五、与本店契合角度
+
+| 角度 | 档案依据 | 难度 | 预期契合 |
+|------|----------|------|----------|
+{{#each angles}}| {{angle}} | {{profileBasis}} | {{difficulty}} | {{expectedFit}} |
+{{/each}}
+
+{{#if warnings}}
+## ⚠️ 提示
+
+{{#each warnings}}- {{this}}
+{{/each}}
+{{/if}}

@@ -1,0 +1,78 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://zaotai.local/schemas/a5.output.json",
+  "title": "A5 脚本编剧 · 输出契约（artifactType: script.package）",
+  "description": "跨工单契约：WO-030 的 mock fixture 与 WO-021 Runner 校验共用本形状，字段名不得增删。无 summary——A5 产物的 L3 下游裁剪不在本轮范围，按 WO-030 默认不加。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["topicRef", "oral", "storyboard", "titles", "hashtags", "firstComment", "complianceNotes"],
+  "properties": {
+    "topicRef": {
+      "type": "string",
+      "minLength": 1,
+      "description": "本脚本对应的选题标识，原样引用输入 topicId，不改写"
+    },
+    "oral": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["hook", "body", "cta", "wordCount", "estDurationSec"],
+      "description": "口播脚本。wordCount 必须等于 hook+body 各段+cta 的实际总字数；estDurationSec 按 ≈4.5 字/秒 折算，偏差 ≤15%",
+      "properties": {
+        "hook": { "type": "string", "minLength": 1, "description": "开场钩子，一开口就留住人" },
+        "body": {
+          "type": "array",
+          "minItems": 2,
+          "description": "正文段落，讲清卖点与证据；每段与分镜 shot 的 voiceover 逐句对应",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "cta": { "type": "string", "minLength": 1, "description": "行动号召，引导到团购页或评论区" },
+        "wordCount": { "type": "integer", "minimum": 1, "description": "hook + body 全部 + cta 的实际总字数" },
+        "estDurationSec": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "按 ≈4.5 字/秒 折算的预计时长（秒），与 wordCount 自洽"
+        }
+      }
+    },
+    "storyboard": {
+      "type": "array",
+      "minItems": 4,
+      "description": "分镜表，每个 shot 对应口播的一段；护栏可能剔除违规镜头，故长度需留余量",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["shotNo", "timeRange", "visual", "voiceover", "onScreenText", "note"],
+        "properties": {
+          "shotNo": { "type": "integer", "minimum": 1, "description": "镜头序号，从 1 起递增" },
+          "timeRange": { "type": "string", "minLength": 1, "description": "镜头起止时间，如 00:00-00:07" },
+          "visual": { "type": "string", "minLength": 1, "description": "画面描述" },
+          "voiceover": { "type": "string", "minLength": 1, "description": "该镜头对应的口播原文" },
+          "onScreenText": { "type": "string", "minLength": 1, "description": "屏幕字幕/花字" },
+          "note": { "type": "string", "minLength": 1, "description": "拍摄与剪辑要点" }
+        }
+      }
+    },
+    "titles": {
+      "type": "array",
+      "minItems": 3,
+      "description": "3 个备选标题（a11 契约 titles[3]）",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "hashtags": {
+      "type": "array",
+      "minItems": 1,
+      "description": "话题标签，至少 1 个",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "firstComment": {
+      "type": "string",
+      "minLength": 1,
+      "description": "发布后自评置顶的评论"
+    },
+    "complianceNotes": {
+      "type": "array",
+      "description": "合规自查说明：价格是否与档案一致、是否用了绝对化用语、时长偏差是否达标（可空数组）",
+      "items": { "type": "string", "minLength": 1 }
+    }
+  }
+}

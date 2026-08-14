@@ -1,0 +1,96 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://zaotai.local/schemas/a3.output.json",
+  "title": "A3 爆款解剖师 · 输出契约（artifactType: viral.analysis）",
+  "description": "跨工单契约：WO-020 的 mock fixture 与 WO-021 Runner 校验共用本形状，字段名不得增删。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "summary",
+    "structure",
+    "hookAnalysis",
+    "viralFactors",
+    "replicability",
+    "angles"
+  ],
+  "properties": {
+    "summary": {
+      "type": "string",
+      "minLength": 1,
+      "description": "一句话总述。上下文装配裁剪下游 Agent 时只保留本字段"
+    },
+    "structure": {
+      "type": "array",
+      "minItems": 4,
+      "description": "结构分段。按叙事目的切分，不按时间均分",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["segment", "startSec", "endSec", "purpose", "technique"],
+        "properties": {
+          "segment": { "type": "string", "minLength": 1, "description": "段落名，如 开场钩子" },
+          "startSec": { "type": "number", "minimum": 0, "description": "起始秒" },
+          "endSec": { "type": "number", "minimum": 0, "description": "结束秒" },
+          "purpose": { "type": "string", "minLength": 1, "description": "这一段要达成的目的" },
+          "technique": { "type": "string", "minLength": 1, "description": "达成该目的所用的具体手法" }
+        }
+      }
+    },
+    "hookAnalysis": {
+      "type": "object",
+      "description": "开场钩子专项分析",
+      "additionalProperties": false,
+      "required": ["type", "first3sec", "retentionDriver"],
+      "properties": {
+        "type": { "type": "string", "minLength": 1, "description": "钩子类型，如 反差/悬念/利益前置" },
+        "first3sec": { "type": "string", "minLength": 1, "description": "前 3 秒实际发生了什么" },
+        "retentionDriver": { "type": "string", "minLength": 1, "description": "把人留住的核心驱动力" }
+      }
+    },
+    "viralFactors": {
+      "type": "array",
+      "minItems": 3,
+      "description": "爆因归因。每项 evidence 必须是 transcript 中可逐字检索到的原句",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["factor", "weight", "evidence"],
+        "properties": {
+          "factor": { "type": "string", "minLength": 1, "description": "爆因名称" },
+          "weight": { "type": "number", "minimum": 0, "maximum": 1, "description": "归因权重，0–1" },
+          "evidence": { "type": "string", "minLength": 1, "description": "transcript 中的原句，不得转述" }
+        }
+      }
+    },
+    "replicability": {
+      "type": "object",
+      "description": "本店可复制性判断",
+      "additionalProperties": false,
+      "required": ["score", "reason"],
+      "properties": {
+        "score": { "type": "integer", "minimum": 0, "maximum": 100, "description": "可复制性评分 0–100" },
+        "reason": { "type": "string", "minLength": 1, "description": "给出该评分的依据" }
+      }
+    },
+    "angles": {
+      "type": "array",
+      "minItems": 2,
+      "description": "与本店的契合切入角度。每条必须锚定一个档案字段",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["angle", "profileBasis", "difficulty", "expectedFit"],
+        "properties": {
+          "angle": { "type": "string", "minLength": 1, "description": "切入角度描述" },
+          "profileBasis": {
+            "type": "string",
+            "enum": ["店名", "品类", "客单价", "招牌菜", "团购套餐", "目标顾客", "门店阶段"],
+            "description": "护栏的机器可校验实现：依据只能来自七个门店档案字段之一"
+          },
+          "difficulty": { "type": "string", "enum": ["低", "中", "高"], "description": "落地难度" },
+          "expectedFit": { "type": "string", "enum": ["低", "中", "高"], "description": "预期契合度" }
+        }
+      }
+    }
+  }
+}

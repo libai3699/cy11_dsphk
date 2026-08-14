@@ -1,0 +1,42 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://zaotai.local/schemas/a5.input.json",
+  "title": "A5 脚本编剧 · 输入契约",
+  "description": "单条已确认选题的口播脚本写作任务。缺必填字段时 Runner 直接拒绝执行，不靠模型兜底。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["clientId", "topicId", "type", "durationSec", "tone", "mustInclude"],
+  "properties": {
+    "clientId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "门店档案目录名，用于装配 L2 档案层，如 xiangcaiguan"
+    },
+    "topicId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "已确认选题的标识（来自上游 topic.plan），A5 不改选题方向，输出原样引用"
+    },
+    "type": {
+      "type": "string",
+      "enum": ["oral", "storyboard", "both"],
+      "description": "本次要产出的内容形态：仅口播 / 仅分镜 / 两者都要"
+    },
+    "durationSec": {
+      "type": "integer",
+      "minimum": 15,
+      "maximum": 120,
+      "description": "目标时长（秒），口播按 ≈4.5 字/秒 折算，偏差 ≤15%"
+    },
+    "tone": {
+      "type": "string",
+      "minLength": 1,
+      "description": "口播语气基调，如 日常随和 / 活泼 / 稳重"
+    },
+    "mustInclude": {
+      "type": "array",
+      "description": "必须写进口播或分镜的要素（可空数组），如 双人套餐 / 招牌菜",
+      "items": { "type": "string", "minLength": 1 }
+    }
+  }
+}

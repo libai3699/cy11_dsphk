@@ -1,0 +1,66 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://zaotai.local/schemas/a4.input.json",
+  "title": "A4 选题策划官 · 输入契约",
+  "description": "本周选题任务的输入：周次、已确认热点/爆款产物引用、选题额度与人力约束。缺必填字段时 Runner 直接拒绝执行，不靠模型兜底。hotspotIds/viralIds 允许为空数组，支持无上游单步降级。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["clientId", "weekLabel", "hotspotIds", "viralIds", "quota", "constraints"],
+  "properties": {
+    "clientId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "门店档案目录名，用于装配 L2 档案层，如 xiangcaiguan"
+    },
+    "weekLabel": {
+      "type": "string",
+      "minLength": 1,
+      "description": "周标签，如 2026-W33"
+    },
+    "hotspotIds": {
+      "type": "array",
+      "description": "已确认热点产物（hotspot.digest）的 artifactId 列表，可空数组（允许无上游单步降级）",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "viralIds": {
+      "type": "array",
+      "description": "已确认爆款拆解产物（viral.analysis）的 artifactId 列表，可空数组（允许无上游单步降级）",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "quota": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["total"],
+      "properties": {
+        "total": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 20,
+          "description": "本周选题总数额度，1–20"
+        },
+        "byPillar": {
+          "type": "object",
+          "additionalProperties": { "type": "integer", "minimum": 1 },
+          "description": "可选。各支柱类型的条数分配，键为支柱名（如 招牌菜 / 热点借势 / 顾客证言）"
+        }
+      }
+    },
+    "constraints": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["人力", "拍摄条件"],
+      "properties": {
+        "人力": {
+          "type": "string",
+          "minLength": 1,
+          "description": "本周可投入的拍摄/出镜人力约束，如 店长+后厨可出镜，每周最多拍 4 条"
+        },
+        "拍摄条件": {
+          "type": "string",
+          "minLength": 1,
+          "description": "本周拍摄条件约束，如 仅店内实拍 / 只有手机 / 无外拍"
+        }
+      }
+    }
+  }
+}
